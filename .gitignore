@@ -1,0 +1,52 @@
+# Файлы и папки сборки
+/build
+/app/build
+
+# Кэш Gradle
+.gradle
+/.gradle
+
+# Настройки IDE
+.idea
+*.iml
+
+# Логи
+*.log
+
+# Локальные настройки Android Studio
+/local.properties
+
+# Кэш Android Studio
+.cxx
+.externalNativeBuild
+/captures
+
+# Кэш тестов
+*.apk
+*.ap_
+*.dex
+
+# Конфиденциальные файлы и настройки
+*.keystore
+*.jks
+
+# Файлы ОС
+.DS_Store
+Thumbs.db
+
+# node_modules (если используется React Native или другие JS-инструменты)
+node_modules
+
+# Файлы coverage
+coverage/
+*.ec
+
+# Папки для временных скриптов и экспорта
+*.hprof
+
+# Кэш Kotlin
+.kotlinc
+
+# Кэш lint
+lint/intermediates/
+lint/generated/

@@ -9,6 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.android.material.appbar.MaterialToolbar
@@ -76,23 +77,34 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupEdgeToEdge() {
-        // Включаем edge-to-edge режим
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-        } else {
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = 
-                android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-        }
+        // Включаем edge-to-edge режим с использованием WindowCompat (современный API)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Настраиваем цвета статус бара в зависимости от темы
-        val windowInsetsController = ViewCompat.getWindowInsetsController(window.decorView)
+        // Получаем настройки темы
         val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
         val isDarkTheme = prefs.getBoolean("dark_theme", true)
-        
-        windowInsetsController?.isAppearanceLightStatusBars = !isDarkTheme
-        windowInsetsController?.isAppearanceLightNavigationBars = !isDarkTheme
+
+        // Настраиваем цвета статус бара и навигационной панели
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Для API 30+ используем новый WindowInsetsController
+            val insetsController = window.insetsController
+            if (isDarkTheme) {
+                insetsController?.setSystemBarsAppearance(0, 
+                    android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
+                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
+            } else {
+                insetsController?.setSystemBarsAppearance(
+                    android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
+                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
+                    android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
+                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
+            }
+        } else {
+            // Для более старых версий используем WindowInsetsControllerCompat
+            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+            windowInsetsController.isAppearanceLightStatusBars = !isDarkTheme
+            windowInsetsController.isAppearanceLightNavigationBars = !isDarkTheme
+        }
 
         // Устанавливаем обработчик для системных отступов
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->

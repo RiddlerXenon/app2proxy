@@ -1,6 +1,11 @@
-<resources>
-    <style name="Theme.App2proxy" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/md_theme_light_primary</item>
-        <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.App2Proxy" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_dark_onPrimaryContainer</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/md_theme_dark_primary</item>
+        <item name="android:navigationBarColor" tools:targetApi="l">@color/md_theme_dark_primary</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

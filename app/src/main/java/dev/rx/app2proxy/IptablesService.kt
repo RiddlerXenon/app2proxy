@@ -31,15 +31,15 @@ object IptablesService {
             UIDS="$uids"
             PORT=$XRAY_PORT
 
-            for UID in $UIDS; do
-              while iptables -t nat -C OUTPUT -p tcp -m owner --uid-owner $UID -j REDIRECT --to-ports $PORT 2>/dev/null; do
-                iptables -t nat -D OUTPUT -p tcp -m owner --uid-owner $UID -j REDIRECT --to-ports $PORT
+            for UID in ${'$'}UIDS; do
+              while iptables -t nat -C OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT 2>/dev/null; do
+                iptables -t nat -D OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT
               done
             done
 
-            for UID in $UIDS; do
-              iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner $UID -j REDIRECT --to-ports $PORT
-              iptables -t nat -A OUTPUT -p udp --dport 53 -m owner --uid-owner $UID -j REDIRECT --to-ports $XRAY_DNS_PORT
+            for UID in ${'$'}UIDS; do
+              iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT
+              iptables -t nat -A OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports $XRAY_DNS_PORT
             done
 
             iptables -t nat -L OUTPUT -n --line-numbers
@@ -50,12 +50,12 @@ object IptablesService {
         return """
             UIDS="$uids"
             PORT=$XRAY_PORT
-            for UID in $UIDS; do
-              while iptables -t nat -C OUTPUT -p tcp -m owner --uid-owner $UID -j REDIRECT --to-ports $PORT 2>/dev/null; do
-                iptables -t nat -D OUTPUT -p tcp -m owner --uid-owner $UID -j REDIRECT --to-ports $PORT
+            for UID in ${'$'}UIDS; do
+              while iptables -t nat -C OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT 2>/dev/null; do
+                iptables -t nat -D OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT
               done
-              while iptables -t nat -C OUTPUT -p udp --dport 53 -m owner --uid-owner $UID -j REDIRECT --to-ports $XRAY_DNS_PORT 2>/dev/null; do
-                iptables -t nat -D OUTPUT -p udp --dport 53 -m owner --uid-owner $UID -j REDIRECT --to-ports $XRAY_DNS_PORT
+              while iptables -t nat -C OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports $XRAY_DNS_PORT 2>/dev/null; do
+                iptables -t nat -D OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports $XRAY_DNS_PORT
               done
             done
             iptables -t nat -L OUTPUT -n --line-numbers

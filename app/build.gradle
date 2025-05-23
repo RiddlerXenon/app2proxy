@@ -7,6 +7,10 @@ android {
     namespace 'dev.rx.app2proxy'
     compileSdk 36
 
+    buildFeatures {
+        dataBinding true
+    }
+
     defaultConfig {
         applicationId "dev.rx.app2proxy"
         minSdk 21

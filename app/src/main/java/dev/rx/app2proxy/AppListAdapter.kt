@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import dev.rx.app2proxy.databinding.ItemAppBinding
 
 class AppListAdapter(
-    private val apps: List<AppInfo>,
+    private var apps: List<AppInfo>,
     selectedUids: Set<String>,
     private val onSelectedChanged: (Set<String>) -> Unit
 ) : RecyclerView.Adapter<AppListAdapter.AppViewHolder>() {
@@ -21,15 +21,38 @@ class AppListAdapter(
 
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val app = apps[position]
-        holder.binding.checkBox.text = "${app.appName} (${app.packageName})"
-        holder.binding.checkBox.isChecked = selected.contains(app.uid.toString())
-        holder.binding.checkBox.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) selected.add(app.uid.toString()) else selected.remove(app.uid.toString())
-            onSelectedChanged(selected)
+        holder.binding.checkBox.apply {
+            text = "${app.appName} (${app.packageName})"
+            setOnCheckedChangeListener(null)
+            isChecked = selected.contains(app.uid.toString())
+            setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) selected.add(app.uid.toString()) else selected.remove(app.uid.toString())
+                onSelectedChanged(selected)
+            }
         }
     }
 
     fun getSelectedUids(): Set<String> = selected
+
+    fun selectAll() {
+        selected.clear()
+        selected.addAll(apps.map { it.uid.toString() })
+        notifyDataSetChanged()
+        onSelectedChanged(selected)
+    }
+
+    fun deselectAll() {
+        selected.clear()
+        notifyDataSetChanged()
+        onSelectedChanged(selected)
+    }
+
+    fun updateData(newApps: List<AppInfo>, selectedUids: Set<String>) {
+        this.apps = newApps
+        selected.clear()
+        selected.addAll(selectedUids)
+        notifyDataSetChanged()
+    }
 
     class AppViewHolder(val binding: ItemAppBinding) : RecyclerView.ViewHolder(binding.root)
 }

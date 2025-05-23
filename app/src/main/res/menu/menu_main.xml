@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_show_system"
+        android:title="Показывать системные"
+        android:checkable="true"
+        android:checked="false"
+        android:icon="@android:drawable/ic_menu_manage"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/action_select_all"
+        android:title="Выбрать все"
+        android:showAsAction="never"/>
+    <item
+        android:id="@+id/action_deselect_all"
+        android:title="Снять выделение"
+        android:showAsAction="never"/>
+    <item
+        android:id="@+id/action_settings"
+        android:title="Настройки"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:showAsAction="always"/>
+</menu>

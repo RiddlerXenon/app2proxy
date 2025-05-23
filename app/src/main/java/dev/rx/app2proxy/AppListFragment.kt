@@ -63,6 +63,14 @@ class AppListFragment : Fragment() {
         }
     }
 
+    // Новый метод для обновления состояния чекбоксов после изменения правил
+    fun refreshSelectedStates() {
+        if (::adapter.isInitialized) {
+            val currentSelected = getPrefs().getStringSet("selected_uids", emptySet()) ?: emptySet()
+            adapter.updateSelectedStates(currentSelected)
+        }
+    }
+
     private fun applyProxyRules() {
         if (!::adapter.isInitialized) {
             Toast.makeText(requireContext(), "Список приложений не загружен", Toast.LENGTH_SHORT).show()
@@ -74,7 +82,7 @@ class AppListFragment : Fragment() {
 
         if (selectedUids.isNotEmpty()) {
             val uidsString = selectedUids.joinToString(" ")
-            
+
             // Находим UID для удаления (которые были выбраны ранее, но больше не выбраны)
             val uidsToRemove = prevSelectedUids - selectedUids
             if (uidsToRemove.isNotEmpty()) {

@@ -14,6 +14,11 @@ class RulesManagerFragment : Fragment() {
     private var _binding: FragmentRulesManagerBinding? = null
     private val binding get() = _binding!!
     private lateinit var rulesAdapter: RulesAdapter
+    private var rulesUpdateListener: RulesUpdateListener? = null
+
+    fun setRulesUpdateListener(listener: RulesUpdateListener) {
+        this.rulesUpdateListener = listener
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -116,6 +121,9 @@ class RulesManagerFragment : Fragment() {
         // Обновляем список
         rulesAdapter.updateRules(emptyList())
         
+        // Уведомляем фрагмент списка приложений об изменении
+        rulesUpdateListener?.onRulesUpdated()
+        
         Toast.makeText(requireContext(), "Все правила удалены", Toast.LENGTH_SHORT).show()
     }
 
@@ -141,6 +149,9 @@ class RulesManagerFragment : Fragment() {
         
         // Обновляем список
         loadCurrentRules()
+        
+        // Уведомляем фрагмент списка приложений об изменении
+        rulesUpdateListener?.onRulesUpdated()
         
         Toast.makeText(requireContext(), "Удалено ${selectedRules.size} правил", Toast.LENGTH_SHORT).show()
     }

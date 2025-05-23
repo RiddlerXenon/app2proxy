@@ -16,7 +16,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dev.rx.app2proxy.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), RulesUpdateListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewPagerAdapter: ViewPagerAdapter
     private var showSystemApps = false
@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupViewPager() {
-        viewPagerAdapter = ViewPagerAdapter(this)
+        viewPagerAdapter = ViewPagerAdapter(this, this)
         binding.viewPager.adapter = viewPagerAdapter
     }
 
@@ -182,18 +182,15 @@ class MainActivity : AppCompatActivity() {
                 item.isChecked = !item.isChecked
                 showSystemApps = item.isChecked
                 // Уведомляем фрагмент о изменении
-                val fragment = supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
-                fragment?.setShowSystemApps(showSystemApps)
+                getAppListFragment()?.setShowSystemApps(showSystemApps)
                 true
             }
             R.id.action_select_all -> {
-                val fragment = supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
-                fragment?.selectAll()
+                getAppListFragment()?.selectAll()
                 true
             }
             R.id.action_deselect_all -> {
-                val fragment = supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
-                fragment?.deselectAll()
+                getAppListFragment()?.deselectAll()
                 true
             }
             R.id.action_settings -> {
@@ -202,5 +199,20 @@ class MainActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    // Реализация RulesUpdateListener
+    override fun onRulesUpdated() {
+        // Уведомляем фрагмент списка приложений об изменении правил
+        getAppListFragment()?.refreshSelectedStates()
+    }
+
+    // Вспомогательные методы для получения фрагментов
+    private fun getAppListFragment(): AppListFragment? {
+        return viewPagerAdapter.getFragment(0) as? AppListFragment
+    }
+
+    private fun getRulesManagerFragment(): RulesManagerFragment? {
+        return viewPagerAdapter.getFragment(1) as? RulesManagerFragment
     }
 }

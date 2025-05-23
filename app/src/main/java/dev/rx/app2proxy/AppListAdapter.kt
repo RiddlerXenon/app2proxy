@@ -78,5 +78,13 @@ class AppListAdapter(
         notifyDataSetChanged()
     }
 
+    // Новый метод для обновления только состояния выбранных элементов
+    fun updateSelectedStates(selectedUids: Set<String>) {
+        selected.clear()
+        selected.addAll(selectedUids)
+        notifyDataSetChanged()
+        onSelectedChanged(selected)
+    }
+
     class AppViewHolder(val binding: ItemAppBinding) : RecyclerView.ViewHolder(binding.root)
 }

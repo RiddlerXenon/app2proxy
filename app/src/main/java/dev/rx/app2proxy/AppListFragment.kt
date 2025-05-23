@@ -71,25 +71,19 @@ class AppListFragment : Fragment() {
 
         val selectedUids = adapter.getSelectedUids()
         val prevSelectedUids = getPrefs().getStringSet("selected_uids", emptySet()) ?: emptySet()
-        
-        // Находим приложения, которые были выбраны ранее, но сейчас не выбраны
-        val uidsToRemove = prevSelectedUids - selectedUids
-        
-        // Логируем для отладки
-        android.util.Log.d("AppListFragment", "Selected UIDs: $selectedUids")
-        android.util.Log.d("AppListFragment", "Previous UIDs: $prevSelectedUids")
-        android.util.Log.d("AppListFragment", "UIDs to remove: $uidsToRemove")
-        
-        // Удаляем правила для приложений, которые больше не выбраны
-        if (uidsToRemove.isNotEmpty()) {
-            val removeUidsString = uidsToRemove.joinToString(" ")
-            IptablesService.clearRules(requireContext(), removeUidsString)
-        }
-        
+
         if (selectedUids.isNotEmpty()) {
-            // Применяем правила для выбранных приложений
             val uidsString = selectedUids.joinToString(" ")
-            IptablesService.applyRules(requireContext(), uidsString)
+            
+            // Находим UID для удаления (которые были выбраны ранее, но больше не выбраны)
+            val uidsToRemove = prevSelectedUids - selectedUids
+            if (uidsToRemove.isNotEmpty()) {
+                val uidsToRemoveString = uidsToRemove.joinToString(" ")
+                IptablesService.clearRules(uidsToRemoveString)
+            }
+            
+            // Применяем правила для текущих выбранных приложений
+            IptablesService.applyRules(uidsString)
             
             Toast.makeText(requireContext(), 
                 "Правила применены для ${selectedUids.size} приложений" + 

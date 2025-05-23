@@ -12,11 +12,11 @@ object IptablesService {
         val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
         val uids = prefs.getStringSet("selected_uids", emptySet())?.joinToString(" ") ?: ""
         if (uids.isNotEmpty()) {
-            applyRules(context, uids)
+            applyRules(uids)
         }
     }
 
-    fun applyRules(context: Context, uids: String) {
+    fun applyRules(uids: String) {
         if (uids.trim().isEmpty()) return
         
         val script = buildScript(uids)
@@ -25,7 +25,7 @@ object IptablesService {
         android.util.Log.d("IptablesService", "Apply rules result: $result")
     }
 
-    fun clearRules(context: Context, uids: String) {
+    fun clearRules(uids: String) {
         if (uids.trim().isEmpty()) return
         
         val script = buildClearScript(uids)

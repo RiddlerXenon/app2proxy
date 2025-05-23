@@ -50,8 +50,9 @@ class RulesManagerFragment : Fragment() {
         }
 
         // Инициализируем адаптер
-        rulesAdapter = RulesAdapter { updatedRules ->
+        rulesAdapter = RulesAdapter { _ ->
             // Callback для обновления списка выбранных правил
+            // Пустая реализация, так как обновление происходит автоматически
         }
         binding.recyclerViewRules.adapter = rulesAdapter
     }
@@ -107,7 +108,7 @@ class RulesManagerFragment : Fragment() {
         }
 
         val uidsString = selectedUids.joinToString(" ")
-        IptablesService.clearRules(requireContext(), uidsString)
+        IptablesService.clearRules(uidsString)
         
         // Очищаем сохраненные UID
         prefs.edit().putStringSet("selected_uids", emptySet()).apply()
@@ -130,7 +131,7 @@ class RulesManagerFragment : Fragment() {
         val uidsString = uidsToRemove.joinToString(" ")
         
         // Удаляем правила iptables
-        IptablesService.clearRules(requireContext(), uidsString)
+        IptablesService.clearRules(uidsString)
         
         // Обновляем сохраненные UID
         val prefs = requireContext().getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)

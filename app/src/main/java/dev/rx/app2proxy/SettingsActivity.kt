@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
+import androidx.core.view.WindowInsetsControllerCompat
 import com.google.android.material.appbar.MaterialToolbar
 import dev.rx.app2proxy.databinding.ActivitySettingsBinding
 
@@ -31,16 +31,8 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(binding.root)
         this.prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
 
-        // Настройка системных отступов
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.updatePadding(
-                left = systemBars.left,
-                right = systemBars.right,
-                bottom = systemBars.bottom
-            )
-            insets
-        }
+        // Настраиваем edge-to-edge режим
+        setupEdgeToEdge()
 
         // Настройка toolbar
         val toolbar: MaterialToolbar = binding.toolbar
@@ -84,6 +76,42 @@ class SettingsActivity : AppCompatActivity() {
                 binding.switchMaterialYou.isChecked = false
                 Toast.makeText(this, "Material You доступен только на Android 12 и выше", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun setupEdgeToEdge() {
+        // Включаем edge-to-edge режим
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = 
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        }
+
+        // Настраиваем цвета статус бара в зависимости от темы
+        val windowInsetsController = ViewCompat.getWindowInsetsController(window.decorView)
+        val isDarkTheme = prefs.getBoolean("dark_theme", true)
+        
+        windowInsetsController?.isAppearanceLightStatusBars = !isDarkTheme
+        windowInsetsController?.isAppearanceLightNavigationBars = !isDarkTheme
+
+        // Устанавливаем обработчик для системных отступов
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            // Получаем отступы для системных баров
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            
+            // AppBarLayout автоматически обработает верхний отступ благодаря fitsSystemWindows="true"
+            // Нам нужно только обработать боковые и нижний отступы
+            binding.root.setPadding(
+                systemBars.left,
+                0, // Верхний отступ обрабатывается AppBarLayout
+                systemBars.right,
+                systemBars.bottom
+            )
+            
+            insets
         }
     }
 

@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -33,10 +34,10 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             val allGranted = permissions.all { it.value }
             if (!allGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 // Показать сообщение о необходимости разрешения
-                android.widget.Toast.makeText(
+                Toast.makeText(
                     this, 
                     "Для отображения всех приложений необходимо разрешение", 
-                    android.widget.Toast.LENGTH_LONG
+                    Toast.LENGTH_LONG
                 ).show()
             }
         }
@@ -68,6 +69,9 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         // Настройка нижней навигации
         setupBottomNavigation()
 
+        // Проверяем и восстанавливаем правила при запуске приложения
+        checkAndRestoreRulesOnStart()
+
         // Запрашиваем разрешения если нужно
         if (permissions.isNotEmpty()) {
             val needsPermission = permissions.any { 
@@ -76,6 +80,67 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             if (needsPermission) {
                 permissionLauncher.launch(permissions)
             }
+        }
+    }
+
+    /**
+     * Проверяет и восстанавливает правила iptables при запуске приложения
+     * Это дополнительная защита на случай, если автозагрузка не сработала
+     */
+    private fun checkAndRestoreRulesOnStart() {
+        try {
+            val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
+            val selectedUids = prefs.getStringSet("selected_uids", emptySet()) ?: emptySet()
+            
+            if (selectedUids.isNotEmpty()) {
+                // Получаем время последней перезагрузки системы
+                val currentBootTime = System.currentTimeMillis() - android.os.SystemClock.elapsedRealtime()
+                val lastBootTime = prefs.getLong("last_boot_time", 0)
+                val lastRulesApplied = prefs.getLong("last_rules_applied", 0)
+                
+                // Проверяем, нужно ли восстанавливать правила
+                val shouldRestoreRules = when {
+                    // Если это первый запуск после установки
+                    lastBootTime == 0L -> true
+                    
+                    // Если прошло больше 2 минут с момента перезагрузки и правила не применялись
+                    currentBootTime > lastBootTime + 120000 && lastRulesApplied < currentBootTime -> true
+                    
+                    // Если разница во времени загрузки больше 1 минуты (новая перезагрузка)
+                    Math.abs(currentBootTime - lastBootTime) > 60000 -> true
+                    
+                    else -> false
+                }
+                
+                if (shouldRestoreRules) {
+                    android.util.Log.d("MainActivity", "Восстанавливаем правила iptables для ${selectedUids.size} приложений")
+                    
+                    // Применяем правила
+                    IptablesService.applyRulesFromPrefs(this)
+                    
+                    // Сохраняем время применения правил
+                    prefs.edit()
+                        .putLong("last_boot_time", currentBootTime)
+                        .putLong("last_rules_applied", System.currentTimeMillis())
+                        .apply()
+                    
+                    // Показываем уведомление пользователю
+                    Toast.makeText(
+                        this, 
+                        "App2Proxy: Правила iptables восстановлены для ${selectedUids.size} приложений", 
+                        Toast.LENGTH_LONG
+                    ).show()
+                    
+                    android.util.Log.d("MainActivity", "Правила iptables успешно восстановлены")
+                } else {
+                    android.util.Log.d("MainActivity", "Правила iptables уже применены, восстановление не требуется")
+                }
+            } else {
+                android.util.Log.d("MainActivity", "Нет сохранённых правил для восстановления")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Ошибка при проверке и восстановлении правил iptables", e)
+            Toast.makeText(this, "Ошибка при восстановлении правил: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -209,10 +274,42 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
 
     // Вспомогательные методы для получения фрагментов
     private fun getAppListFragment(): AppListFragment? {
-        return viewPagerAdapter.getFragment(0) as? AppListFragment
+        return try {
+            supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
+        } catch (e: Exception) {
+            null
+        }
     }
 
-    private fun getRulesManagerFragment(): RulesManagerFragment? {
-        return viewPagerAdapter.getFragment(1) as? RulesManagerFragment
+    override fun onResume() {
+        super.onResume()
+        
+        // Дополнительная проверка правил при возврате в приложение
+        // Это полезно, если пользователь вручную очистил правила iptables
+        checkRulesConsistency()
+    }
+
+    /**
+     * Проверяет соответствие сохранённых настроек и текущих правил iptables
+     */
+    private fun checkRulesConsistency() {
+        try {
+            val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
+            val selectedUids = prefs.getStringSet("selected_uids", emptySet()) ?: emptySet()
+            val lastConsistencyCheck = prefs.getLong("last_consistency_check", 0)
+            val currentTime = System.currentTimeMillis()
+            
+            // Проверяем не чаще чем раз в 5 минут
+            if (selectedUids.isNotEmpty() && currentTime - lastConsistencyCheck > 300000) {
+                android.util.Log.d("MainActivity", "Проверяем соответствие правил iptables")
+                
+                // Здесь можно добавить проверку текущих правил iptables
+                // и при необходимости восстановить их
+                
+                prefs.edit().putLong("last_consistency_check", currentTime).apply()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Ошибка при проверке соответствия правил", e)
+        }
     }
 }

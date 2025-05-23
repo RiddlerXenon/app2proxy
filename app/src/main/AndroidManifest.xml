@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Основные разрешения -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <!-- Разрешения для работы в фоне (для современных версий Android) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    
+    <!-- Разрешение для запуска после загрузки на некоторых устройствах -->
+    <uses-permission android:name="android.permission.RECEIVE_USER_PRESENT" />
 
     <application
         android:name=".App2ProxyApplication"
@@ -14,27 +22,40 @@
         android:theme="@style/Theme.App2Proxy"
         android:supportsRtl="true">
 
+        <!-- Сервис для автозагрузки -->
+        <service
+            android:name=".AutoStartService"
+            android:enabled="true"
+            android:exported="false" />
+
+        <!-- BroadcastReceiver для автозагрузки -->
         <receiver
             android:name=".BootReceiver"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:directBootAware="true">
             <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <data android:scheme="package" />
             </intent-filter>
         </receiver>
 
+        <!-- Настройки -->
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/action_settings" />
 
+        <!-- Главная активность -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

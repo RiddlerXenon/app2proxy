@@ -153,7 +153,7 @@ class MainActivity : AppCompatActivity() {
         }
         
         if (!::adapter.isInitialized) {
-            adapter = AppListAdapter(apps, prevSelected) { updatedUids ->
+            adapter = AppListAdapter(apps, prevSelected, packageManager) { updatedUids ->
                 saveSelectedUids(updatedUids)
             }
             binding.recyclerView.adapter = adapter

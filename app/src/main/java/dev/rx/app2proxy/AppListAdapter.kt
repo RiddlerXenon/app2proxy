@@ -1,5 +1,6 @@
 package dev.rx.app2proxy
 
+import android.content.pm.PackageManager
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -8,6 +9,7 @@ import dev.rx.app2proxy.databinding.ItemAppBinding
 class AppListAdapter(
     private var apps: List<AppInfo>,
     selectedUids: Set<String>,
+    private val packageManager: PackageManager,
     private val onSelectedChanged: (Set<String>) -> Unit
 ) : RecyclerView.Adapter<AppListAdapter.AppViewHolder>() {
     private val selected = selectedUids.toMutableSet()
@@ -21,13 +23,35 @@ class AppListAdapter(
 
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val app = apps[position]
-        holder.binding.checkBox.apply {
-            text = "${app.appName} (${app.packageName})"
-            setOnCheckedChangeListener(null)
-            isChecked = selected.contains(app.uid.toString())
-            setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) selected.add(app.uid.toString()) else selected.remove(app.uid.toString())
+        holder.binding.apply {
+            // Загружаем иконку приложения
+            try {
+                val appIcon = packageManager.getApplicationIcon(app.packageName)
+                appIcon.setImageDrawable(appIcon)
+            } catch (e: Exception) {
+                // Используем стандартную иконку если не удалось загрузить
+                appIcon.setImageResource(android.R.drawable.sym_def_app_icon)
+            }
+            
+            // Устанавливаем тексты
+            appName.text = app.appName
+            packageName.text = app.packageName
+            
+            // Настраиваем чекбокс
+            checkBox.setOnCheckedChangeListener(null)
+            checkBox.isChecked = selected.contains(app.uid.toString())
+            checkBox.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    selected.add(app.uid.toString())
+                } else {
+                    selected.remove(app.uid.toString())
+                }
                 onSelectedChanged(selected)
+            }
+            
+            // Добавляем клик по всей карточке
+            root.setOnClickListener {
+                checkBox.toggle()
             }
         }
     }

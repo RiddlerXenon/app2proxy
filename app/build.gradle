@@ -8,6 +8,7 @@ android {
     compileSdk 36
 
     buildFeatures {
+        viewBinding true  // Изменяем с dataBinding на viewBinding
         dataBinding true
     }
 

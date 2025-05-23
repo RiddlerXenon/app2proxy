@@ -23,8 +23,6 @@
                 app:title="@string/action_settings"
                 app:titleCentered="true"
                 app:titleTextColor="?attr/colorOnSurface"
-                app:navigationIcon="@drawable/ic_arrow_back_24"
-                app:navigationIconTint="?attr/colorOnSurface"
                 style="@style/Widget.Material3.Toolbar" />
 
         </com.google.android.material.appbar.AppBarLayout>

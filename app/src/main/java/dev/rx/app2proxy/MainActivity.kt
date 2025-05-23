@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.appbar.MaterialToolbar
 import dev.rx.app2proxy.databinding.ActivityMainBinding
 
@@ -21,12 +22,10 @@ class MainActivity : AppCompatActivity() {
     private var showSystemApps = false
 
     // Если появятся dangerous permissions -- добавь их сюда
-    // Сейчас массив пустой, так как никаких runtime-разрешений не требуется
     private val permissions = emptyArray<String>()
 
     private val permissionLauncher =
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { _ ->
-            // Разрешения обработаны, можно обновить список (если нужно)
             updateAppList()
         }
 
@@ -50,13 +49,17 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // Обязательно явно устанавливаем title и включаем его отображение
         val toolbar: MaterialToolbar = binding.toolbar
         setSupportActionBar(toolbar)
         supportActionBar?.title = getString(R.string.app_name)
         supportActionBar?.setDisplayShowTitleEnabled(true)
 
-        // Подгружаем список приложений
+        // Настраиваем SwipeRefreshLayout
+        binding.swipeRefresh.setOnRefreshListener {
+            updateAppList()
+            binding.swipeRefresh.isRefreshing = false
+        }
+
         updateAppList()
 
         binding.btnApply.setOnClickListener {

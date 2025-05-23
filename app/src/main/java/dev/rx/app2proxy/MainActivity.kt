@@ -13,7 +13,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.tabs.TabLayoutMediator
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import dev.rx.app2proxy.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -62,8 +62,11 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.app_name)
         supportActionBar?.setDisplayShowTitleEnabled(true)
 
-        // Настройка ViewPager и TabLayout
+        // Настройка ViewPager
         setupViewPager()
+
+        // Настройка нижней навигации
+        setupBottomNavigation()
 
         // Запрашиваем разрешения если нужно
         if (permissions.isNotEmpty()) {
@@ -112,13 +115,18 @@ class MainActivity : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             
             // AppBarLayout автоматически обработает верхний отступ благодаря fitsSystemWindows="true"
-            // Нам нужно только обработать боковые и нижний отступы
+            // Нам нужно только обработать боковые отступы, нижний обрабатывается bottom navigation
             binding.root.setPadding(
                 systemBars.left,
                 0, // Верхний отступ обрабатывается AppBarLayout
                 systemBars.right,
-                systemBars.bottom
+                0 // Нижний отступ обрабатывается BottomNavigation
             )
+            
+            // Применяем отступ для нижней навигации
+            val bottomNavigationParams = binding.bottomNavigation.layoutParams as androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams
+            bottomNavigationParams.bottomMargin = systemBars.bottom
+            binding.bottomNavigation.layoutParams = bottomNavigationParams
             
             insets
         }
@@ -127,14 +135,39 @@ class MainActivity : AppCompatActivity() {
     private fun setupViewPager() {
         viewPagerAdapter = ViewPagerAdapter(this)
         binding.viewPager.adapter = viewPagerAdapter
+    }
 
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            tab.text = when (position) {
-                0 -> "Приложения"
-                1 -> "Правила"
-                else -> ""
+    private fun setupBottomNavigation() {
+        val bottomNavigation: BottomNavigationView = binding.bottomNavigation
+        
+        // Устанавливаем начальную вкладку
+        bottomNavigation.selectedItemId = R.id.nav_apps
+        
+        // Настраиваем обработчик нажатий
+        bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_apps -> {
+                    binding.viewPager.currentItem = 0
+                    true
+                }
+                R.id.nav_rules -> {
+                    binding.viewPager.currentItem = 1
+                    true
+                }
+                else -> false
             }
-        }.attach()
+        }
+
+        // Синхронизируем ViewPager с BottomNavigation
+        binding.viewPager.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                when (position) {
+                    0 -> bottomNavigation.selectedItemId = R.id.nav_apps
+                    1 -> bottomNavigation.selectedItemId = R.id.nav_rules
+                }
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

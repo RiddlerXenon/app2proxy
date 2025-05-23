@@ -8,17 +8,19 @@
     tools:context=".MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
-        app:elevation="4dp"
+        app:elevation="0dp"
         style="@style/Widget.Material3.AppBarLayout">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorSurfaceContainer"
+            android:background="?attr/colorSurface"
+            app:titleCentered="true"
             app:titleTextColor="?attr/colorOnSurface"
             style="@style/Widget.Material3.Toolbar" />
 
@@ -26,7 +28,7 @@
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorSurfaceContainer"
+            android:background="?attr/colorSurface"
             app:tabMode="fixed"
             app:tabGravity="fill"
             app:tabTextColor="?attr/colorOnSurface"

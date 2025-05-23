@@ -13,7 +13,7 @@ import java.io.File
 class BootReceiver : BroadcastReceiver() {
     
     companion object {
-        private const val TAG = "BootReceiver"
+        private const val TAG = "App2ProxyBootReceiver" // Изменено имя для лучшей отладки
     }
     
     override fun onReceive(context: Context, intent: Intent) {
@@ -21,30 +21,67 @@ class BootReceiver : BroadcastReceiver() {
         val action = intent.action ?: "null"
         
         Log.d(TAG, "=== BootReceiver АКТИВИРОВАН ===")
-        Log.d(TAG, "Android версия: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
         Log.d(TAG, "Action: $action")
+        Log.d(TAG, "Android версия: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+        Log.d(TAG, "Производитель: ${Build.MANUFACTURER}")
+        Log.d(TAG, "Модель: ${Build.MODEL}")
         Log.d(TAG, "Время: $timestamp")
         
-        // Специальная обработка для Android 15
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            Log.d(TAG, "🔥 Android 15 обнаружен, используем специальную логику")
-            handleAndroid15BootEvent(context, action, timestamp)
-        } else {
-            Log.d(TAG, "📱 Используем стандартную логику для Android ${Build.VERSION.SDK_INT}")
-            handleStandardBootEvent(context, action, timestamp)
+        // Проверяем что это действительно событие загрузки
+        if (!isBootEvent(action)) {
+            Log.d(TAG, "Событие $action не является событием загрузки, игнорируем")
+            return
         }
-    }
-    
-    private fun handleAndroid15BootEvent(context: Context, action: String, timestamp: Long) {
+        
         try {
-            Log.d(TAG, "🚀 Обработка события для Android 15")
-            
-            // Немедленно сохраняем факт активации
+            // Немедленно сохраняем факт активации (чтобы диагностика это видела)
             val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
             prefs.edit()
                 .putBoolean("boot_receiver_activated", true)
                 .putLong("last_boot_receiver_time", timestamp)
                 .putString("last_boot_action", action)
+                .putString("boot_android_version", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+                .putString("boot_device_info", "${Build.MANUFACTURER} ${Build.MODEL}")
+                .apply()
+            
+            writeToLogFile(context, "BOOT_EVENT_RECEIVED: action=$action, android=${Build.VERSION.SDK_INT}, time=$timestamp")
+            
+            // Специальная обработка для Android 15
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                Log.d(TAG, "🔥 Android 15+ обнаружен, используем специальную логику")
+                handleAndroid15BootEvent(context, action, timestamp)
+            } else {
+                Log.d(TAG, "📱 Используем стандартную логику для Android ${Build.VERSION.SDK_INT}")
+                handleStandardBootEvent(context, action, timestamp)
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Критическая ошибка в onReceive", e)
+            writeToLogFile(context, "BOOT_RECEIVER_ERROR: ${e.message}")
+        }
+    }
+    
+    private fun isBootEvent(action: String): Boolean {
+        return when (action) {
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_LOCKED_BOOT_COMPLETED,
+            Intent.ACTION_USER_PRESENT,
+            Intent.ACTION_USER_UNLOCKED,
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            Intent.ACTION_PACKAGE_REPLACED,
+            "android.intent.action.QUICKBOOT_POWERON",
+            "com.htc.intent.action.QUICKBOOT_POWERON",
+            "miui.intent.action.MIUI_APPLICATION_START" -> true
+            else -> false
+        }
+    }
+    
+    private fun handleAndroid15BootEvent(context: Context, action: String, timestamp: Long) {
+        try {
+            Log.d(TAG, "🚀 Обработка события для Android 15+")
+            
+            val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
+            prefs.edit()
                 .putBoolean("android_15_boot_handled", true)
                 .apply()
             
@@ -70,13 +107,6 @@ class BootReceiver : BroadcastReceiver() {
         try {
             Log.d(TAG, "📱 Стандартная обработка события")
             
-            val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
-            prefs.edit()
-                .putBoolean("boot_receiver_activated", true)
-                .putLong("last_boot_receiver_time", timestamp)
-                .putString("last_boot_action", action)
-                .apply()
-            
             writeToLogFile(context, "STANDARD_BOOT_EVENT: action=$action, time=$timestamp")
             
             startStandardRestoration(context, action)
@@ -89,7 +119,6 @@ class BootReceiver : BroadcastReceiver() {
     
     private fun checkBootPermissions(context: Context): Boolean {
         try {
-            // Проверяем критические разрешения для Android 15
             val packageManager = context.packageManager
             val packageName = context.packageName
             
@@ -129,7 +158,7 @@ class BootReceiver : BroadcastReceiver() {
         }
         
         Log.d(TAG, "📋 Найдено ${selectedUids.size} правил для Android 15")
-        writeToLogFile(context, "ANDROID_15_RULES_FOUND: count=${selectedUids.size}")
+        writeToLogFile(context, "ANDROID_15_RULES_FOUND: count=${selectedUids.size}, uids=${selectedUids.joinToString(",")}")
         
         // Метод 1: Попытка запуска foreground service
         var serviceStarted = false
@@ -190,7 +219,7 @@ class BootReceiver : BroadcastReceiver() {
                     writeToLogFile(context, "ANDROID_15_FALLBACK_ERROR: ${e.message}")
                 }
             }
-        }, 5000) // Короткая задержка 5 секунд для Android 15
+        }, 3000) // Уменьшена задержка до 3 секунд
     }
     
     private fun startStandardRestoration(context: Context, action: String) {
@@ -201,8 +230,12 @@ class BootReceiver : BroadcastReceiver() {
         
         if (selectedUids.isEmpty()) {
             Log.d(TAG, "❌ Нет правил для восстановления")
+            writeToLogFile(context, "STANDARD_NO_RULES")
             return
         }
+        
+        Log.d(TAG, "📋 Найдено ${selectedUids.size} правил для стандартного восстановления")
+        writeToLogFile(context, "STANDARD_RULES_FOUND: count=${selectedUids.size}, uids=${selectedUids.joinToString(",")}")
         
         // Запуск через service
         try {
@@ -218,24 +251,29 @@ class BootReceiver : BroadcastReceiver() {
             }
             
             Log.d(TAG, "✅ Стандартный service запущен")
+            writeToLogFile(context, "STANDARD_SERVICE_STARTED")
             
         } catch (e: Exception) {
             Log.e(TAG, "❌ Ошибка запуска стандартного service", e)
+            writeToLogFile(context, "STANDARD_SERVICE_ERROR: ${e.message}")
             
             // Fallback
             Handler(Looper.getMainLooper()).postDelayed({
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val uidsString = selectedUids.joinToString(" ")
-                        applyRulesDirectlyStandard(uidsString)
+                        val result = applyRulesDirectlyStandard(uidsString)
+                        writeToLogFile(context, "STANDARD_FALLBACK_RESULT: $result")
                     } catch (fallbackError: Exception) {
                         Log.e(TAG, "❌ Ошибка стандартного fallback", fallbackError)
+                        writeToLogFile(context, "STANDARD_FALLBACK_ERROR: ${fallbackError.message}")
                     }
                 }
-            }, 10000)
+            }, 8000)
         }
     }
     
+    // Остальные методы остаются без изменений...
     private suspend fun applyRulesDirectlyAndroid15(uids: String): String {
         return withContext(Dispatchers.IO) {
             try {

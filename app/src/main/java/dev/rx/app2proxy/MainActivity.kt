@@ -1,12 +1,14 @@
 package dev.rx.app2proxy
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -26,6 +28,10 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewPagerAdapter: ViewPagerAdapter
     private var showSystemApps = false
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
 
     // Разрешения с учетом Android 15
     private val permissions = buildList {
@@ -47,7 +53,13 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
-            android.util.Log.d("MainActivity", "=== MainActivity onCreate (Android ${Build.VERSION.SDK_INT}) ===")
+            Log.d(TAG, "=== MainActivity onCreate (Android ${Build.VERSION.SDK_INT}) ===")
+            Log.d(TAG, "Intent action: ${intent?.action}")
+            Log.d(TAG, "Intent data: ${intent?.data}")
+            Log.d(TAG, "Intent extras: ${intent?.extras?.keySet()?.joinToString()}")
+            
+            // Обработка специальных интентов от системных настроек
+            handleSpecialIntents()
             
             // Применяем тему в зависимости от версии Android
             applyThemeForAndroidVersion()
@@ -81,7 +93,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             requestNecessaryPermissions()
             
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "❌ Критическая ошибка в onCreate", e)
+            Log.e(TAG, "❌ Критическая ошибка в onCreate", e)
             
             // Показываем диалог с ошибкой
             try {
@@ -93,9 +105,120 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                     }
                     .show()
             } catch (dialogError: Exception) {
-                android.util.Log.e("MainActivity", "Ошибка показа диалога", dialogError)
+                Log.e(TAG, "Ошибка показа диалога", dialogError)
                 finish()
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        
+        try {
+            Log.d(TAG, "=== onNewIntent ===")
+            Log.d(TAG, "New intent action: ${intent?.action}")
+            Log.d(TAG, "New intent data: ${intent?.data}")
+            
+            setIntent(intent)
+            handleSpecialIntents()
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка в onNewIntent", e)
+        }
+    }
+    
+    private fun handleSpecialIntents() {
+        try {
+            val action = intent?.action
+            val data = intent?.data
+            
+            Log.d(TAG, "Обработка интента: action=$action, data=$data")
+            
+            when (action) {
+                Intent.ACTION_APPLICATION_PREFERENCES -> {
+                    Log.d(TAG, "Обработка ACTION_APPLICATION_PREFERENCES")
+                    // Интент из системных настроек - показываем главный экран
+                    handleApplicationPreferencesIntent()
+                }
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS -> {
+                    Log.d(TAG, "Обработка ACTION_APPLICATION_DETAILS_SETTINGS")
+                    // Интент из настроек приложения
+                    handleApplicationDetailsIntent()
+                }
+                Intent.ACTION_VIEW -> {
+                    Log.d(TAG, "Обработка ACTION_VIEW")
+                    if (data?.scheme == "app2proxy") {
+                        handleCustomSchemeIntent(data)
+                    }
+                }
+                else -> {
+                    Log.d(TAG, "Стандартный запуск приложения")
+                }
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка обработки специальных интентов", e)
+        }
+    }
+    
+    private fun handleApplicationPreferencesIntent() {
+        try {
+            Log.d(TAG, "Открытие настроек из системного меню")
+            
+            // Очищаем флаги интента для предотвращения проблем
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            
+            // Показываем информацию о том, что приложение открыто из настроек
+            Toast.makeText(this, "Приложение открыто из системных настроек", Toast.LENGTH_SHORT).show()
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка обработки APPLICATION_PREFERENCES", e)
+        }
+    }
+    
+    private fun handleApplicationDetailsIntent() {
+        try {
+            Log.d(TAG, "Открытие деталей приложения")
+            
+            // Обработка интента от системных настроек
+            val packageName = intent?.data?.schemeSpecificPart
+            Log.d(TAG, "Package name: $packageName")
+            
+            if (packageName == this.packageName) {
+                Log.d(TAG, "Это наше приложение, показываем главный экран")
+                Toast.makeText(this, "Детали приложения App2Proxy", Toast.LENGTH_SHORT).show()
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка обработки APPLICATION_DETAILS_SETTINGS", e)
+        }
+    }
+    
+    private fun handleCustomSchemeIntent(data: Uri) {
+        try {
+            Log.d(TAG, "Обработка кастомной схемы: $data")
+            
+            // Обработка app2proxy:// схемы
+            val host = data.host
+            val path = data.path
+            
+            Log.d(TAG, "Host: $host, Path: $path")
+            
+            // Можно добавить специальную обработку для разных путей
+            when (host) {
+                "settings" -> {
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                }
+                "rules" -> {
+                    binding.viewPager.currentItem = 1 // Переходим на вкладку правил
+                }
+                "apps" -> {
+                    binding.viewPager.currentItem = 0 // Переходим на вкладку приложений
+                }
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка обработки кастомной схемы", e)
         }
     }
     
@@ -108,16 +231,16 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 try {
                     com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this)
-                    android.util.Log.d("MainActivity", "✅ Material You применен")
+                    Log.d(TAG, "✅ Material You применен")
                 } catch (e: Exception) {
-                    android.util.Log.e("MainActivity", "Ошибка применения Material You", e)
+                    Log.e(TAG, "Ошибка применения Material You", e)
                 }
             }
 
             setTheme(R.style.Theme_App2Proxy)
             
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка применения темы", e)
+            Log.e(TAG, "Ошибка применения темы", e)
             setTheme(R.style.Theme_App2Proxy) // Fallback тема
         }
     }
@@ -129,12 +252,12 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             supportActionBar?.title = getString(R.string.app_name)
             supportActionBar?.setDisplayShowTitleEnabled(true)
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка настройки toolbar", e)
+            Log.e(TAG, "Ошибка настройки toolbar", e)
         }
     }
     
     private fun performAndroid15Setup() {
-        android.util.Log.d("MainActivity", "🔥 Выполняем настройку для Android 15")
+        Log.d(TAG, "🔥 Выполняем настройку для Android 15")
         
         try {
             // Сохраняем информацию о версии Android
@@ -149,38 +272,38 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             performAndroid15Diagnostics()
             
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "❌ Ошибка настройки Android 15", e)
+            Log.e(TAG, "❌ Ошибка настройки Android 15", e)
             // Fallback к стандартной настройке
             performStandardSetup()
         }
     }
     
     private fun performStandardSetup() {
-        android.util.Log.d("MainActivity", "📱 Выполняем стандартную настройку")
+        Log.d(TAG, "📱 Выполняем стандартную настройку")
         
         try {
             // Расширенная диагностика автозагрузки
             performExtendedBootDiagnostics()
             
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "❌ Ошибка стандартной настройки", e)
+            Log.e(TAG, "❌ Ошибка стандартной настройки", e)
         }
     }
     
     private fun performAndroid15Diagnostics() {
-        android.util.Log.d("MainActivity", "🔥 Android 15 диагностика")
+        Log.d(TAG, "🔥 Android 15 диагностика")
         
         try {
             val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
             val selectedUids = prefs.getStringSet("selected_uids", emptySet()) ?: emptySet()
             
             if (selectedUids.isEmpty()) {
-                android.util.Log.d("MainActivity", "❌ Нет правил для диагностики Android 15")
+                Log.d(TAG, "❌ Нет правил для диагностики Android 15")
                 Toast.makeText(this, "Нет правил для проверки автозагрузки", Toast.LENGTH_SHORT).show()
                 return
             }
             
-            android.util.Log.d("MainActivity", "📋 Android 15: Диагностика ${selectedUids.size} правил")
+            Log.d(TAG, "📋 Android 15: Диагностика ${selectedUids.size} правил")
             
             // Проверяем статус Android 15 автозагрузки
             val android15BootHandled = prefs.getBoolean("android_15_boot_handled", false)
@@ -188,10 +311,10 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             val android15Success = prefs.getBoolean("android_15_success", false)
             val android15Result = prefs.getString("android_15_result", "no_result")
             
-            android.util.Log.d("MainActivity", "🔥 Android 15 boot обработан: $android15BootHandled")
-            android.util.Log.d("MainActivity", "🔥 Последнее восстановление: $lastAndroid15Restore")
-            android.util.Log.d("MainActivity", "🔥 Успех: $android15Success")
-            android.util.Log.d("MainActivity", "🔥 Результат: $android15Result")
+            Log.d(TAG, "🔥 Android 15 boot обработан: $android15BootHandled")
+            Log.d(TAG, "🔥 Последнее восстановление: $lastAndroid15Restore")
+            Log.d(TAG, "🔥 Успех: $android15Success")
+            Log.d(TAG, "🔥 Результат: $android15Result")
             
             // Читаем логи Android 15
             readAndroid15Logs()
@@ -203,25 +326,25 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             
             val needsRestore = when {
                 !android15BootHandled && (currentTime - currentBootTime) > 300000 -> {
-                    android.util.Log.d("MainActivity", "🔧 Android 15: BootReceiver не сработал")
+                    Log.d(TAG, "🔧 Android 15: BootReceiver не сработал")
                     true
                 }
                 android15BootHandled && !android15Success && timeSinceRestore > 180000 -> {
-                    android.util.Log.d("MainActivity", "🔧 Android 15: Восстановление не удалось")
+                    Log.d(TAG, "🔧 Android 15: Восстановление не удалось")
                     true
                 }
                 android15Success && timeSinceRestore < 600000 -> {
-                    android.util.Log.d("MainActivity", "✅ Android 15: Автозагрузка работает")
+                    Log.d(TAG, "✅ Android 15: Автозагрузка работает")
                     false
                 }
                 else -> {
-                    android.util.Log.d("MainActivity", "🔧 Android 15: Статус неопределён, восстанавливаем")
+                    Log.d(TAG, "🔧 Android 15: Статус неопределён, восстанавливаем")
                     true
                 }
             }
             
             if (needsRestore) {
-                android.util.Log.d("MainActivity", "🔧 Требуется ручное восстановление для Android 15")
+                Log.d(TAG, "🔧 Требуется ручное восстановление для Android 15")
                 
                 // Применяем правила
                 IptablesService.applyRulesFromPrefs(this)
@@ -260,14 +383,14 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 .apply()
             
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "❌ Ошибка Android 15 диагностики", e)
+            Log.e(TAG, "❌ Ошибка Android 15 диагностики", e)
             
             // Аварийное восстановление
             try {
                 IptablesService.applyRulesFromPrefs(this)
                 Toast.makeText(this, "Правила восстановлены после ошибки диагностики Android 15", Toast.LENGTH_SHORT).show()
             } catch (restoreError: Exception) {
-                android.util.Log.e("MainActivity", "❌ Ошибка аварийного восстановления Android 15", restoreError)
+                Log.e(TAG, "❌ Ошибка аварийного восстановления Android 15", restoreError)
             }
         }
     }
@@ -277,30 +400,30 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             val bootLogFile = File(filesDir, "boot_receiver_log.txt")
             if (bootLogFile.exists()) {
                 val log = bootLogFile.readText()
-                android.util.Log.d("MainActivity", "📄 Android 15 Boot Log:\n$log")
+                Log.d(TAG, "📄 Android 15 Boot Log:\n$log")
             }
             
             val serviceLogFile = File(filesDir, "service_log.txt")
             if (serviceLogFile.exists()) {
                 val log = serviceLogFile.readText()
-                android.util.Log.d("MainActivity", "📄 Android 15 Service Log:\n$log")
+                Log.d(TAG, "📄 Android 15 Service Log:\n$log")
             }
             
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка чтения логов Android 15", e)
+            Log.e(TAG, "Ошибка чтения логов Android 15", e)
         }
     }
     
     private fun performExtendedBootDiagnostics() {
         // Существующий код диагностики для старых версий Android
         try {
-            android.util.Log.d("MainActivity", "=== СТАНДАРТНАЯ ДИАГНОСТИКА АВТОЗАГРУЗКИ ===")
+            Log.d(TAG, "=== СТАНДАРТНАЯ ДИАГНОСТИКА АВТОЗАГРУЗКИ ===")
             
             val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
             val selectedUids = prefs.getStringSet("selected_uids", emptySet()) ?: emptySet()
             
             if (selectedUids.isEmpty()) {
-                android.util.Log.d("MainActivity", "❌ Нет сохранённых правил")
+                Log.d(TAG, "❌ Нет сохранённых правил")
                 return
             }
             
@@ -309,20 +432,20 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             val serviceRestoreSuccess = prefs.getBoolean("service_restore_success", false)
             
             if (!bootReceiverActivated) {
-                android.util.Log.d("MainActivity", "🔧 Требуется ручное восстановление")
+                Log.d(TAG, "🔧 Требуется ручное восстановление")
                 IptablesService.applyRulesFromPrefs(this)
                 Toast.makeText(this, "BootReceiver не сработал. Правила восстановлены вручную.\nДобавьте приложение в автозапуск.", Toast.LENGTH_LONG).show()
             } else if (!serviceRestoreSuccess) {
-                android.util.Log.d("MainActivity", "🔧 BootReceiver сработал, но восстановление не удалось")
+                Log.d(TAG, "🔧 BootReceiver сработал, но восстановление не удалось")
                 IptablesService.applyRulesFromPrefs(this)
                 Toast.makeText(this, "Автозагрузка частично работает. Правила восстановлены.", Toast.LENGTH_LONG).show()
             } else {
-                android.util.Log.d("MainActivity", "✅ Автозагрузка работает")
+                Log.d(TAG, "✅ Автозагрузка работает")
                 Toast.makeText(this, "✅ Автозагрузка работает корректно", Toast.LENGTH_SHORT).show()
             }
             
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "❌ Ошибка стандартной диагностики", e)
+            Log.e(TAG, "❌ Ошибка стандартной диагностики", e)
         }
     }
     
@@ -334,7 +457,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         }
         
         if (missingPermissions.isNotEmpty()) {
-            android.util.Log.d("MainActivity", "Запрашиваем разрешения: $missingPermissions")
+            Log.d(TAG, "Запрашиваем разрешения: $missingPermissions")
             permissionLauncher.launch(missingPermissions.toTypedArray())
         }
     }
@@ -343,8 +466,8 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         val grantedPermissions = results.filterValues { it }.keys
         val deniedPermissions = results.filterValues { !it }.keys
         
-        android.util.Log.d("MainActivity", "Разрешены: $grantedPermissions")
-        android.util.Log.d("MainActivity", "Отклонены: $deniedPermissions")
+        Log.d(TAG, "Разрешены: $grantedPermissions")
+        Log.d(TAG, "Отклонены: $deniedPermissions")
         
         if (deniedPermissions.isNotEmpty()) {
             val message = buildString {
@@ -380,7 +503,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             }
             startActivity(intent)
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка открытия настроек", e)
+            Log.e(TAG, "Ошибка открытия настроек", e)
             Toast.makeText(this, "Не удалось открыть настройки", Toast.LENGTH_SHORT).show()
         }
     }
@@ -438,7 +561,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 insets
             }
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка настройки edge-to-edge", e)
+            Log.e(TAG, "Ошибка настройки edge-to-edge", e)
         }
     }
 
@@ -447,7 +570,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             viewPagerAdapter = ViewPagerAdapter(this, this)
             binding.viewPager.adapter = viewPagerAdapter
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка настройки ViewPager", e)
+            Log.e(TAG, "Ошибка настройки ViewPager", e)
         }
     }
 
@@ -484,7 +607,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 }
             })
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка настройки BottomNavigation", e)
+            Log.e(TAG, "Ошибка настройки BottomNavigation", e)
         }
     }
 
@@ -494,7 +617,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             menu.findItem(R.id.action_show_system)?.isChecked = showSystemApps
             true
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка создания меню", e)
+            Log.e(TAG, "Ошибка создания меню", e)
             false
         }
     }
@@ -520,7 +643,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                     try {
                         startActivity(Intent(this, SettingsActivity::class.java))
                     } catch (e: Exception) {
-                        android.util.Log.e("MainActivity", "Ошибка открытия настроек", e)
+                        Log.e(TAG, "Ошибка открытия настроек", e)
                         Toast.makeText(this, "Ошибка открытия настроек", Toast.LENGTH_SHORT).show()
                     }
                     true
@@ -528,7 +651,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 else -> super.onOptionsItemSelected(item)
             }
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка обработки меню", e)
+            Log.e(TAG, "Ошибка обработки меню", e)
             false
         }
     }
@@ -538,7 +661,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         try {
             getAppListFragment()?.refreshSelectedStates()
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка обновления правил", e)
+            Log.e(TAG, "Ошибка обновления правил", e)
         }
     }
 
@@ -546,7 +669,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         return try {
             supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка получения AppListFragment", e)
+            Log.e(TAG, "Ошибка получения AppListFragment", e)
             null
         }
     }
@@ -557,8 +680,11 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         try {
             // Дополнительная проверка правил при возврате в приложение
             checkRulesConsistency()
+            
+            // Проверяем состояние компонентов для диагностики
+            checkComponentsStatus()
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка в onResume", e)
+            Log.e(TAG, "Ошибка в onResume", e)
         }
     }
 
@@ -571,14 +697,52 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             
             // Проверяем не чаще чем раз в 5 минут
             if (selectedUids.isNotEmpty() && currentTime - lastConsistencyCheck > 300000) {
-                android.util.Log.d("MainActivity", "🔍 Проверяем соответствие правил iptables")
+                Log.d(TAG, "🔍 Проверяем соответствие правил iptables")
                 
                 prefs.edit()
                     .putLong("last_consistency_check", currentTime)
                     .apply()
             }
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Ошибка при проверке соответствия правил", e)
+            Log.e(TAG, "Ошибка при проверке соответствия правил", e)
+        }
+    }
+    
+    private fun checkComponentsStatus() {
+        try {
+            val packageManager = packageManager
+            
+            // Проверяем состояние BootReceiver
+            val bootReceiverComponent = ComponentName(this, BootReceiver::class.java)
+            val bootReceiverState = packageManager.getComponentEnabledSetting(bootReceiverComponent)
+            Log.d(TAG, "BootReceiver состояние: $bootReceiverState")
+            
+            // Проверяем состояние AutoStartService
+            val serviceComponent = ComponentName(this, AutoStartService::class.java)
+            val serviceState = packageManager.getComponentEnabledSetting(serviceComponent)
+            Log.d(TAG, "AutoStartService состояние: $serviceState")
+            
+            // Проверяем состояние alias активности
+            try {
+                val aliasComponent = ComponentName(this, "dev.rx.app2proxy.AppInfoActivity")
+                val aliasState = packageManager.getComponentEnabledSetting(aliasComponent)
+                Log.d(TAG, "AppInfoActivity alias состояние: $aliasState")
+            } catch (e: Exception) {
+                Log.w(TAG, "Alias активность не найдена: ${e.message}")
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка проверки состояния компонентов", e)
+        }
+    }
+    
+    override fun onDestroy() {
+        try {
+            Log.d(TAG, "MainActivity уничтожается")
+            super.onDestroy()
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка в onDestroy", e)
+            super.onDestroy()
         }
     }
 }

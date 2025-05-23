@@ -1,9 +1,7 @@
 package dev.rx.app2proxy
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -14,11 +12,12 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.tabs.TabLayoutMediator
 import dev.rx.app2proxy.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var adapter: AppListAdapter
+    private lateinit var viewPagerAdapter: ViewPagerAdapter
     private var showSystemApps = false
 
     // Разрешения для Android 11+ (API 30+)
@@ -31,16 +30,13 @@ class MainActivity : AppCompatActivity() {
     private val permissionLauncher =
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val allGranted = permissions.all { it.value }
-            if (allGranted || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-                updateAppList()
-            } else {
+            if (!allGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 // Показать сообщение о необходимости разрешения
                 android.widget.Toast.makeText(
                     this, 
                     "Для отображения всех приложений необходимо разрешение", 
                     android.widget.Toast.LENGTH_LONG
                 ).show()
-                updateAppList() // Все равно попробуем загрузить список
             }
         }
 
@@ -73,11 +69,8 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.app_name)
         supportActionBar?.setDisplayShowTitleEnabled(true)
 
-        // Настраиваем SwipeRefreshLayout
-        binding.swipeRefresh.setOnRefreshListener {
-            updateAppList()
-            binding.swipeRefresh.isRefreshing = false
-        }
+        // Настройка ViewPager и TabLayout
+        setupViewPager()
 
         // Запрашиваем разрешения если нужно
         if (permissions.isNotEmpty()) {
@@ -86,21 +79,21 @@ class MainActivity : AppCompatActivity() {
             }
             if (needsPermission) {
                 permissionLauncher.launch(permissions)
-            } else {
-                updateAppList()
             }
-        } else {
-            updateAppList()
         }
+    }
 
-        binding.btnApply.setOnClickListener {
-            val uids = adapter.getSelectedUids().joinToString(" ")
-            if (uids.isNotEmpty()) {
-                IptablesService.applyRules(this, uids)
-            } else {
-                android.widget.Toast.makeText(this, "Выберите хотя бы одно приложение", android.widget.Toast.LENGTH_SHORT).show()
+    private fun setupViewPager() {
+        viewPagerAdapter = ViewPagerAdapter(this)
+        binding.viewPager.adapter = viewPagerAdapter
+
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            tab.text = when (position) {
+                0 -> "Приложения"
+                1 -> "Правила"
+                else -> ""
             }
-        }
+        }.attach()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -114,21 +107,19 @@ class MainActivity : AppCompatActivity() {
             R.id.action_show_system -> {
                 item.isChecked = !item.isChecked
                 showSystemApps = item.isChecked
-                updateAppList()
+                // Уведомляем фрагмент о изменении
+                val fragment = supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
+                fragment?.setShowSystemApps(showSystemApps)
                 true
             }
             R.id.action_select_all -> {
-                if (::adapter.isInitialized) {
-                    adapter.selectAll()
-                    saveSelectedUids(adapter.getSelectedUids())
-                }
+                val fragment = supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
+                fragment?.selectAll()
                 true
             }
             R.id.action_deselect_all -> {
-                if (::adapter.isInitialized) {
-                    adapter.deselectAll()
-                    saveSelectedUids(adapter.getSelectedUids())
-                }
+                val fragment = supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
+                fragment?.deselectAll()
                 true
             }
             R.id.action_settings -> {
@@ -136,56 +127,6 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    private fun saveSelectedUids(uids: Set<String>) {
-        getPrefs().edit().putStringSet("selected_uids", uids).apply()
-    }
-
-    private fun updateAppList() {
-        val prevSelected = getPrefs().getStringSet("selected_uids", emptySet()) ?: emptySet()
-        val apps = getInstalledApps(showSystemApps)
-        
-        if (apps.isEmpty()) {
-            android.widget.Toast.makeText(this, "Не удалось загрузить список приложений", android.widget.Toast.LENGTH_LONG).show()
-            return
-        }
-        
-        if (!::adapter.isInitialized) {
-            adapter = AppListAdapter(apps, prevSelected, packageManager) { updatedUids ->
-                saveSelectedUids(updatedUids)
-            }
-            binding.recyclerView.adapter = adapter
-        } else {
-            adapter.updateData(apps, prevSelected)
-        }
-    }
-
-    private fun getPrefs() = getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
-
-    private fun getInstalledApps(showSystem: Boolean): List<AppInfo> {
-        return try {
-            val pm = packageManager
-            pm.getInstalledApplications(PackageManager.GET_META_DATA)
-                .filter {
-                    if (showSystem) true else (it.flags and ApplicationInfo.FLAG_SYSTEM) == 0
-                }
-                .mapNotNull { appInfo ->
-                    try {
-                        AppInfo(
-                            appInfo.loadLabel(pm).toString(),
-                            appInfo.packageName,
-                            appInfo.uid
-                        )
-                    } catch (e: Exception) {
-                        null // Пропускаем приложения, которые не удается обработать
-                    }
-                }
-                .sortedBy { it.appName }
-        } catch (e: Exception) {
-            android.widget.Toast.makeText(this, "Ошибка загрузки приложений: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
-            emptyList()
         }
     }
 }

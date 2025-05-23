@@ -6,4 +6,6 @@
     <string name="deselect_all">Снять выделение</string>
     <string name="apply">Применить</string>
     <string name="material_you">Material You (динамические цвета)</string>
+    <string name="tab_apps">Приложения</string>
+    <string name="tab_rules">Правила</string>
 </resources>

@@ -11,19 +11,27 @@ object IptablesService {
     fun applyRulesFromPrefs(context: Context) {
         val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
         val uids = prefs.getStringSet("selected_uids", emptySet())?.joinToString(" ") ?: ""
-        applyRules(context, uids)
+        if (uids.isNotEmpty()) {
+            applyRules(context, uids)
+        }
     }
 
     fun applyRules(context: Context, uids: String) {
+        if (uids.trim().isEmpty()) return
+        
         val script = buildScript(uids)
         val result = runAsRoot(script)
-        Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+        // Не показываем Toast здесь, это делает MainActivity
+        android.util.Log.d("IptablesService", "Apply rules result: $result")
     }
 
     fun clearRules(context: Context, uids: String) {
+        if (uids.trim().isEmpty()) return
+        
         val script = buildClearScript(uids)
         val result = runAsRoot(script)
-        Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+        // Не показываем Toast здесь, это делает MainActivity
+        android.util.Log.d("IptablesService", "Clear rules result: $result")
     }
 
     private fun buildScript(uids: String): String {
@@ -42,6 +50,7 @@ object IptablesService {
               iptables -t nat -A OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports $XRAY_DNS_PORT
             done
 
+            echo "Applied rules for UIDs: ${'$'}UIDS"
             iptables -t nat -L OUTPUT -n --line-numbers
         """.trimIndent()
     }
@@ -58,6 +67,7 @@ object IptablesService {
                 iptables -t nat -D OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports $XRAY_DNS_PORT
               done
             done
+            echo "Cleared rules for UIDs: ${'$'}UIDS"
             iptables -t nat -L OUTPUT -n --line-numbers
         """.trimIndent()
     }

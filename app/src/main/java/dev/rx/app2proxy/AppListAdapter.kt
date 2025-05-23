@@ -26,8 +26,8 @@ class AppListAdapter(
         holder.binding.apply {
             // Загружаем иконку приложения
             try {
-                val appIcon = packageManager.getApplicationIcon(app.packageName)
-                appIcon.setImageDrawable(appIcon)
+                val appIconDrawable = packageManager.getApplicationIcon(app.packageName)
+                appIcon.setImageDrawable(appIconDrawable)
             } catch (e: Exception) {
                 // Используем стандартную иконку если не удалось загрузить
                 appIcon.setImageResource(android.R.drawable.sym_def_app_icon)

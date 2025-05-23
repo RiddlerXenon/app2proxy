@@ -19,30 +19,19 @@
             android:layout_height="wrap_content"
             android:padding="16dp">
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/appIcon"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginEnd="24dp"
-                android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/CircularImageStyle"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
-
             <LinearLayout
                 android:id="@+id/textContainer"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginEnd="16dp"
-                app:layout_constraintStart_toEndOf="@id/appIcon"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/checkBox"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent">
 
                 <TextView
-                    android:id="@+id/appName"
+                    android:id="@+id/textAppName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceBodyLarge"
@@ -53,15 +42,26 @@
                     android:textStyle="normal" />
 
                 <TextView
-                    android:id="@+id/packageName"
+                    android:id="@+id/textPackageName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:maxLines="1"
                     android:ellipsize="middle"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/textUid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorPrimary"
+                    android:maxLines="1"
+                    android:layout_marginTop="2dp"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
 
             </LinearLayout>
 

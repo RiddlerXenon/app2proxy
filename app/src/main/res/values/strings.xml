@@ -8,4 +8,9 @@
     <string name="material_you">Material You (динамические цвета)</string>
     <string name="tab_apps">Приложения</string>
     <string name="tab_rules">Правила</string>
+    <string name="amoled_theme">AMOLED тема</string>
+    <string name="amoled_theme_description">Чисто черный фон для экономии батареи на AMOLED экранах</string>
+    <string name="amoled_theme_requires_dark">Для AMOLED темы необходимо включить темную тему</string>
+    <string name="amoled_theme_enabled">AMOLED тема включена</string>
+    <string name="amoled_theme_disabled">AMOLED тема отключена</string>
 </resources>

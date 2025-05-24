@@ -1,4 +1,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+    
+    <!-- Основные стили виджетов должны быть определены в начале -->
+    <style name="Widget.App.Button" parent="Widget.Material3.Button.UnelevatedButton">
+        <item name="cornerRadius">20dp</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="Widget.App.CardView" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">2dp</item>
+        <item name="rippleColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+    
+    <!-- Основная светлая тема -->
     <style name="Theme.App2Proxy" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_light_primary</item>
         <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
@@ -37,17 +52,5 @@
         <!-- Улучшенные Material 3 стили -->
         <item name="materialButtonStyle">@style/Widget.App.Button</item>
         <item name="materialCardViewStyle">@style/Widget.App.CardView</item>
-    </style>
-    
-    <style name="Widget.App.Button" parent="Widget.Material3.Button.UnelevatedButton">
-        <item name="cornerRadius">20dp</item>
-        <item name="android:letterSpacing">0.01</item>
-        <item name="android:textAllCaps">false</item>
-    </style>
-    
-    <style name="Widget.App.CardView" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardCornerRadius">16dp</item>
-        <item name="cardElevation">2dp</item>
-        <item name="rippleColor">?attr/colorOnSurfaceVariant</item>
     </style>
 </resources>

@@ -226,6 +226,8 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         try {
             val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
             val useMaterialYou = prefs.getBoolean("material_you", false)
+            val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
+            val isDarkTheme = prefs.getBoolean("dark_theme", true)
             
             // Material You только для Android 12+
             if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -237,7 +239,17 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 }
             }
 
-            setTheme(R.style.Theme_App2Proxy)
+            // Выбираем тему в зависимости от настроек
+            when {
+                useAmoledTheme && isDarkTheme -> {
+                    setTheme(R.style.Theme_App2Proxy_Amoled)
+                    Log.d(TAG, "✅ AMOLED тема применена")
+                }
+                else -> {
+                    setTheme(R.style.Theme_App2Proxy)
+                    Log.d(TAG, "✅ Стандартная тема применена")
+                }
+            }
             
         } catch (e: Exception) {
             Log.e(TAG, "Ошибка применения темы", e)

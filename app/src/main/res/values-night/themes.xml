@@ -1,4 +1,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+    
+    <!-- Стили для AMOLED карточек -->
+    <style name="Widget.App.CardView.Amoled" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardBackgroundColor">@color/amoled_surface</item>
+        <item name="strokeColor">@color/amoled_outline</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="rippleColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+    
+    <!-- Обычная темная тема -->
     <style name="Theme.App2Proxy" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_dark_primary</item>
         <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
@@ -37,5 +49,48 @@
         <!-- Улучшенные Material 3 стили -->
         <item name="materialButtonStyle">@style/Widget.App.Button</item>
         <item name="materialCardViewStyle">@style/Widget.App.CardView</item>
+    </style>
+
+    <!-- AMOLED тема с чисто черным фоном -->
+    <style name="Theme.App2Proxy.Amoled" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_dark_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/md_theme_dark_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_dark_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/amoled_surface_variant</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_dark_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/md_theme_dark_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_dark_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/amoled_surface_variant</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_dark_onTertiaryContainer</item>
+        <item name="colorError">@color/md_theme_dark_error</item>
+        <item name="colorErrorContainer">@color/amoled_error_container</item>
+        <item name="colorOnError">@color/md_theme_dark_onError</item>
+        <item name="colorOnErrorContainer">@color/md_theme_dark_onErrorContainer</item>
+        
+        <!-- Чисто черный фон для AMOLED -->
+        <item name="android:colorBackground">@color/amoled_background</item>
+        <item name="colorOnBackground">@color/amoled_on_background</item>
+        <item name="colorSurface">@color/amoled_surface</item>
+        <item name="colorOnSurface">@color/amoled_on_surface</item>
+        <item name="colorSurfaceVariant">@color/amoled_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/amoled_on_surface_variant</item>
+        <item name="colorOutline">@color/amoled_outline</item>
+        <item name="colorSurfaceInverse">@color/md_theme_dark_inverseSurface</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_dark_inverseOnSurface</item>
+        <item name="colorPrimaryInverse">@color/md_theme_dark_inversePrimary</item>
+        
+        <!-- Прозрачная строка состояния -->
+        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
+        <item name="android:navigationBarColor" tools:targetApi="l">@android:color/transparent</item>
+        
+        <!-- Черный цвет для верхней панели -->
+        <item name="colorSurfaceContainer">@color/amoled_surface</item>
+        
+        <!-- Улучшенные Material 3 стили -->
+        <item name="materialButtonStyle">@style/Widget.App.Button</item>
+        <item name="materialCardViewStyle">@style/Widget.App.CardView.Amoled</item>
     </style>
 </resources>

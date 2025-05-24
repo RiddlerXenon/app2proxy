@@ -3,6 +3,7 @@ package dev.rx.app2proxy
 import android.app.Application
 import android.os.Build
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.color.DynamicColors
 
 class App2ProxyApplication : Application() {
@@ -14,63 +15,72 @@ class App2ProxyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         
+        Log.d(TAG, "🚀 Запуск App2Proxy Application")
+        Log.d(TAG, "📱 Android версия: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+        
         try {
-            Log.d(TAG, "=== App2ProxyApplication запущен ===")
-            Log.d(TAG, "Android версия: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
-            Log.d(TAG, "Производитель: ${Build.MANUFACTURER}")
-            Log.d(TAG, "Модель: ${Build.MODEL}")
+            // Инициализация настроек приложения
+            initializeAppSettings()
             
-            // Инициализация настроек
-            initializePreferences()
+            // Применение темы
+            applyTheme()
             
-            // Применение Material You для Android 12+
+            // Инициализация Material You
             initializeMaterialYou()
             
-            // Специальные настройки для разных версий Android
+            // Специальная инициализация для разных версий Android
             when {
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM -> {
-                    Log.d(TAG, "Обнаружен Android 15, применяем специальные настройки")
                     initializeAndroid15Compatibility()
+                    Log.d(TAG, "✅ Инициализация Android 15 завершена")
                 }
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
-                    Log.d(TAG, "Обнаружен Android 14, применяем настройки совместимости")
                     initializeAndroid14Compatibility()
-                }
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                    Log.d(TAG, "Настройка совместимости с современными версиями Android")
-                    initializeModernAndroidCompatibility()
+                    Log.d(TAG, "✅ Инициализация Android 14 завершена")
                 }
                 else -> {
-                    Log.d(TAG, "Настройка совместимости с более старыми версиями Android")
-                    initializeLegacyAndroidCompatibility()
+                    Log.d(TAG, "✅ Стандартная инициализация завершена")
                 }
             }
             
-            // Информация о версии приложения
-            val packageInfo = packageManager.getPackageInfo(packageName, 0)
-            val versionName = packageInfo.versionName ?: "unknown"
-            val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                packageInfo.longVersionCode.toString()
-            } else {
-                @Suppress("DEPRECATION")
-                packageInfo.versionCode.toString()
-            }
-            
-            Log.d(TAG, "Версия приложения: $versionName ($versionCode)")
+            Log.d(TAG, "✅ App2Proxy Application успешно инициализировано")
             
         } catch (e: Exception) {
-            Log.e(TAG, "Критическая ошибка инициализации приложения", e)
-            // Не бросаем исключение, чтобы избежать вылетов при запуске
+            Log.e(TAG, "❌ Критическая ошибка инициализации приложения", e)
         }
     }
     
-    private fun initializePreferences() {
+    private fun applyTheme() {
         try {
             val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
+            val isDarkTheme = prefs.getBoolean("dark_theme", true)
             
-            // Проверяем, нужна ли первичная инициализация
-            if (!prefs.contains("app_initialized")) {
+            // Устанавливаем глобальную тему
+            AppCompatDelegate.setDefaultNightMode(
+                if (isDarkTheme) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+            )
+            
+            Log.d(TAG, "✅ Тема применена: ${if (isDarkTheme) "Темная" else "Светлая"}")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка применения темы", e)
+            // Fallback к системной теме
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        }
+    }
+    
+    private fun initializeAppSettings() {
+        try {
+            val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
+            val isFirstLaunch = !prefs.getBoolean("app_initialized", false)
+            
+            if (isFirstLaunch) {
+                Log.d(TAG, "🎉 Первый запуск приложения - инициализируем настройки по умолчанию")
+                
                 prefs.edit()
+                    .putBoolean("autostart", false)
+                    .putBoolean("dark_theme", true)
+                    .putBoolean("amoled_theme", false) // Новая настройка AMOLED темы
                     .putBoolean("app_initialized", true)
                     .putLong("first_launch_time", System.currentTimeMillis())
                     .putBoolean("material_you", Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
@@ -126,34 +136,6 @@ class App2ProxyApplication : Application() {
                 
         } catch (e: Exception) {
             Log.e(TAG, "Ошибка настройки Android 14", e)
-        }
-    }
-    
-    private fun initializeModernAndroidCompatibility() {
-        try {
-            Log.d(TAG, "Настройка совместимости с современными версиями Android")
-            
-            val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
-            prefs.edit()
-                .putBoolean("modern_android_mode", true)
-                .apply()
-                
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка настройки современных версий", e)
-        }
-    }
-    
-    private fun initializeLegacyAndroidCompatibility() {
-        try {
-            Log.d(TAG, "Настройка совместимости с устаревшими версиями Android")
-            
-            val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
-            prefs.edit()
-                .putBoolean("legacy_android_mode", true)
-                .apply()
-                
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка настройки устаревших версий", e)
         }
     }
 }

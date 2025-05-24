@@ -54,4 +54,14 @@
     <color name="md_theme_dark_inverseOnSurface">#111318</color>
     <color name="md_theme_dark_inverseSurface">#E2E2E6</color>
     <color name="md_theme_dark_inversePrimary">#5F6368</color>
+    
+    <!-- AMOLED цвета для чисто черной темы -->
+    <color name="amoled_background">#000000</color>
+    <color name="amoled_on_background">#FFFFFF</color>
+    <color name="amoled_surface">#000000</color>
+    <color name="amoled_on_surface">#FFFFFF</color>
+    <color name="amoled_surface_variant">#1A1A1A</color>
+    <color name="amoled_on_surface_variant">#CCCCCC</color>
+    <color name="amoled_outline">#333333</color>
+    <color name="amoled_error_container">#2D1B1B</color>
 </resources>

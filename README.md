@@ -5,8 +5,6 @@
 <img src="https://img.shields.io/badge/Android-21%2B-green?logo=android&logoColor=white" alt="Android">
 <img src="https://img.shields.io/badge/Kotlin-100%25-purple?logo=kotlin&logoColor=white" alt="Kotlin">
 <img src="https://img.shields.io/badge/License-GPL%20v3-blue?logo=gnu&logoColor=white" alt="License">
-<img src="https://img.shields.io/github/v/release/RiddlerXenon/app2proxy?logo=github" alt="Release">
-<img src="https://img.shields.io/github/stars/RiddlerXenon/app2proxy?logo=github" alt="Stars">
 
 **Мощное Android-приложение для перенаправления трафика приложений через прокси**
 

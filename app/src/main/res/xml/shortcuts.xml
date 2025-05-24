@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="settings"
+        android:enabled="true"
+        android:icon="@drawable/ic_settings_24"
+        android:shortcutShortLabel="@string/action_settings"
+        android:shortcutLongLabel="@string/action_settings">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.rx.app2proxy"
+            android:targetClass="dev.rx.app2proxy.SettingsActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+</shortcuts>

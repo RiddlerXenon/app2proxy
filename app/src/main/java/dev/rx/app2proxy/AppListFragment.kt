@@ -142,6 +142,10 @@ class AppListFragment : Fragment() {
                 .filter {
                     if (showSystem) true else (it.flags and ApplicationInfo.FLAG_SYSTEM) == 0
                 }
+                .filter { 
+                    // Исключаем само приложение App2Proxy из списка
+                    it.packageName != "dev.rx.app2proxy"
+                }
                 .mapNotNull { appInfo ->
                     try {
                         AppInfo(

@@ -229,6 +229,8 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
             val isDarkTheme = prefs.getBoolean("dark_theme", true)
             
+            Log.d(TAG, "🎨 Применяем тему: MaterialYou=$useMaterialYou, AMOLED=$useAmoledTheme, Dark=$isDarkTheme")
+            
             // Material You только для Android 12+
             if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 try {

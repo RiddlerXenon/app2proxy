@@ -71,14 +71,6 @@
                             android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="12dp" />
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchTheme"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Тёмная тема"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            android:textColor="?attr/colorOnSurface" />
-
                     </LinearLayout>
 
                 </com.google.android.material.card.MaterialCardView>
@@ -114,6 +106,14 @@
                             android:layout_marginBottom="16dp" />
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchTheme"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Тёмная тема"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchMaterialYou"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -121,15 +121,6 @@
                             android:textAppearance="?attr/textAppearanceBodyLarge"
                             android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="8dp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Динамические цвета на основе обоев (Android 12+)"
-                            android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:layout_marginTop="-4dp"
-                            android:layout_marginBottom="16dp" />
 
                         <!-- Новый переключатель AMOLED темы -->
                         <com.google.android.material.switchmaterial.SwitchMaterial

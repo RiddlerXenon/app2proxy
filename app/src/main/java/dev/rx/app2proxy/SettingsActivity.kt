@@ -96,10 +96,10 @@ class SettingsActivity : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 prefs.edit().putBoolean("material_you", isChecked).apply()
                 
-                // Автоматический перезапуск приложения
-                Toast.makeText(this, "Перезапуск приложения для применения Material You...", Toast.LENGTH_SHORT).show()
+                // Показываем сообщение о перезапуске приложения
+                Toast.makeText(this, "🎨 Перезапуск приложения для применения Material You...", Toast.LENGTH_SHORT).show()
                 
-                // Перезапускаем приложение
+                // Перезапускаем приложение с полной очисткой стека
                 val intent = Intent(this, MainActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
@@ -122,11 +122,19 @@ class SettingsActivity : AppCompatActivity() {
             
             prefs.edit().putBoolean("amoled_theme", isChecked).apply()
             
-            // Показываем сообщение и перезапускаем активность
-            val message = if (isChecked) "AMOLED тема включена" else "AMOLED тема отключена"
+            // Показываем сообщение о применении темы
+            val message = if (isChecked) {
+                "🌃 Перезапуск приложения для применения AMOLED темы..."
+            } else {
+                "☀️ Перезапуск приложения для отключения AMOLED темы..."
+            }
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             
-            restartActivity()
+            // Перезапускаем приложение аналогично Material You
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
         }
 
         // Обновляем состояние AMOLED переключателя
@@ -181,15 +189,13 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // Устанавливаем обработчик для системных отступов
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-            // Получаем отступы для системных баров
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             
-            // AppBarLayout автоматически обработает верхний отступ благодаря fitsSystemWindows="true"
-            // Нам нужно только обработать боковые и нижний отступы
-            binding.root.setPadding(
+            // Применяем отступы с учетом системных баров
+            view.setPadding(
                 systemBars.left,
-                0, // Верхний отступ обрабатывается AppBarLayout
+                systemBars.top,
                 systemBars.right,
                 systemBars.bottom
             )
@@ -199,7 +205,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressedDispatcher.onBackPressed()
+        finish()
         return true
     }
 }

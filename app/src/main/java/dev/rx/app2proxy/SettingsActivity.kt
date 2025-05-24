@@ -95,10 +95,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchMaterialYou.setOnCheckedChangeListener { _, isChecked ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 prefs.edit().putBoolean("material_you", isChecked).apply()
-                
-                // Показываем сообщение о перезапуске приложения
-                Toast.makeText(this, "🎨 Перезапуск приложения для применения Material You...", Toast.LENGTH_SHORT).show()
-                
+
                 // Перезапускаем приложение с полной очисткой стека
                 val intent = Intent(this, MainActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -106,7 +103,6 @@ class SettingsActivity : AppCompatActivity() {
                 finish()
             } else {
                 binding.switchMaterialYou.isChecked = false
-                Toast.makeText(this, "Material You доступен только на Android 12 и выше", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -116,19 +112,10 @@ class SettingsActivity : AppCompatActivity() {
             if (isChecked && !binding.switchTheme.isChecked) {
                 // Если пытаются включить AMOLED без темной темы
                 binding.switchAmoledTheme.isChecked = false
-                Toast.makeText(this, "Для AMOLED темы необходимо включить темную тему", Toast.LENGTH_SHORT).show()
                 return@setOnCheckedChangeListener
             }
             
             prefs.edit().putBoolean("amoled_theme", isChecked).apply()
-            
-            // Показываем сообщение о применении темы
-            val message = if (isChecked) {
-                "🌃 Перезапуск приложения для применения AMOLED темы..."
-            } else {
-                "☀️ Перезапуск приложения для отключения AMOLED темы..."
-            }
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             
             // Перезапускаем приложение аналогично Material You
             val intent = Intent(this, MainActivity::class.java)

@@ -54,12 +54,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
             Log.d(TAG, "=== MainActivity onCreate (Android ${Build.VERSION.SDK_INT}) ===")
-            Log.d(TAG, "Intent action: ${intent?.action}")
-            Log.d(TAG, "Intent data: ${intent?.data}")
-            Log.d(TAG, "Intent extras: ${intent?.extras?.keySet()?.joinToString()}")
-            
-            // Обработка специальных интентов от системных настроек
-            handleSpecialIntents()
             
             // Применяем тему в зависимости от версии Android
             applyThemeForAndroidVersion()
@@ -108,113 +102,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 Log.e(TAG, "Ошибка показа диалога", dialogError)
                 finish()
             }
-        }
-    }
-
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        
-        try {
-            Log.d(TAG, "=== onNewIntent ===")
-            Log.d(TAG, "New intent action: ${intent?.action}")
-            Log.d(TAG, "New intent data: ${intent?.data}")
-            
-            setIntent(intent)
-            handleSpecialIntents()
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка в onNewIntent", e)
-        }
-    }
-    
-    private fun handleSpecialIntents() {
-        try {
-            val action = intent?.action
-            val data = intent?.data
-            
-            Log.d(TAG, "Обработка интента: action=$action, data=$data")
-            
-            when (action) {
-                Intent.ACTION_APPLICATION_PREFERENCES -> {
-                    Log.d(TAG, "Обработка ACTION_APPLICATION_PREFERENCES")
-                    // Интент из системных настроек - показываем главный экран
-                    handleApplicationPreferencesIntent()
-                }
-                Settings.ACTION_APPLICATION_DETAILS_SETTINGS -> {
-                    Log.d(TAG, "Обработка ACTION_APPLICATION_DETAILS_SETTINGS")
-                    // Интент из настроек приложения
-                    handleApplicationDetailsIntent()
-                }
-                Intent.ACTION_VIEW -> {
-                    Log.d(TAG, "Обработка ACTION_VIEW")
-                    if (data?.scheme == "app2proxy") {
-                        handleCustomSchemeIntent(data)
-                    }
-                }
-                else -> {
-                    Log.d(TAG, "Стандартный запуск приложения")
-                }
-            }
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка обработки специальных интентов", e)
-        }
-    }
-    
-    private fun handleApplicationPreferencesIntent() {
-        try {
-            Log.d(TAG, "Открытие настроек из системного меню")
-            
-            // Очищаем флаги интента для предотвращения проблем
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка обработки APPLICATION_PREFERENCES", e)
-        }
-    }
-    
-    private fun handleApplicationDetailsIntent() {
-        try {
-            Log.d(TAG, "Открытие деталей приложения")
-            
-            // Обработка интента от системных настроек
-            val packageName = intent?.data?.schemeSpecificPart
-            Log.d(TAG, "Package name: $packageName")
-            
-            if (packageName == this.packageName) {
-                Log.d(TAG, "Это наше приложение, показываем главный экран")
-            }
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка обработки APPLICATION_DETAILS_SETTINGS", e)
-        }
-    }
-    
-    private fun handleCustomSchemeIntent(data: Uri) {
-        try {
-            Log.d(TAG, "Обработка кастомной схемы: $data")
-            
-            // Обработка app2proxy:// схемы
-            val host = data.host
-            val path = data.path
-            
-            Log.d(TAG, "Host: $host, Path: $path")
-            
-            // Можно добавить специальную обработку для разных путей
-            when (host) {
-                "settings" -> {
-                    startActivity(Intent(this, SettingsActivity::class.java))
-                }
-                "rules" -> {
-                    binding.viewPager.currentItem = 1 // Переходим на вкладку правил
-                }
-                "apps" -> {
-                    binding.viewPager.currentItem = 0 // Переходим на вкладку приложений
-                }
-            }
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка обработки кастомной схемы", e)
         }
     }
     

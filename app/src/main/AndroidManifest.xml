@@ -94,7 +94,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Activity для настроек - ИСПРАВЛЕНА ДЛЯ ВЫЛЕТОВ -->
+        <!-- Activity для настроек - БЕЗ ИНТЕНТОВ ДЛЯ СИСТЕМНЫХ НАСТРОЕК -->
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
@@ -113,14 +113,9 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
-            <!-- Интент для системных настроек -->
-            <intent-filter>
-                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </activity>
 
-        <!-- Главная активность - ИСПРАВЛЕНА ДЛЯ ВЫЛЕТОВ -->
+        <!-- Главная активность - БЕЗ ИНТЕНТОВ ДЛЯ СИСТЕМНЫХ НАСТРОЕК -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -137,51 +132,12 @@
             android:hardwareAccelerated="true"
             android:screenOrientation="unspecified">
             
-            <!-- Основной launcher интент -->
+            <!-- Только основной launcher интент -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            
-            <!-- Интент для открытия из настроек системы -->
-            <intent-filter>
-                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-            
-            <!-- Интент для совместимости с системными настройками -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="app2proxy" />
-            </intent-filter>
-            
-            <!-- Интент для обработки настроек приложения -->
-            <intent-filter>
-                <action android:name="android.settings.APPLICATION_DETAILS_SETTINGS" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="package" />
-            </intent-filter>
         </activity>
-        
-        <!-- Alias активность для совместимости с системными настройками -->
-        <activity-alias
-            android:name=".AppInfoActivity"
-            android:targetActivity=".MainActivity"
-            android:exported="true"
-            android:enabled="true"
-            android:label="@string/app_name">
-            <intent-filter>
-                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.settings.APPLICATION_DETAILS_SETTINGS" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="package" />
-            </intent-filter>
-        </activity-alias>
 
         <!-- Provider для совместимости -->
         <provider

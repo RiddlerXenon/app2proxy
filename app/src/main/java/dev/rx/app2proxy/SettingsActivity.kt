@@ -156,7 +156,20 @@ class SettingsActivity : AppCompatActivity() {
         val intent = intent
         finish()
         startActivity(intent)
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        
+        // Используем современный API для анимации переходов
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // Android 14+ (API 34+) - новый API
+            overrideActivityTransition(
+                OVERRIDE_TRANSITION_CLOSE,
+                android.R.anim.fade_in,
+                android.R.anim.fade_out
+            )
+        } else {
+            // Старые версии Android - устаревший но рабочий API
+            @Suppress("DEPRECATION")
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
     }
 
     private fun setupEdgeToEdge() {

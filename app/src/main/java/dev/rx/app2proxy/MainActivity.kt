@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             // Настройка нижней навигации
             setupBottomNavigation()
 
-            // Специальная проверка для Android 15
+            // Специальная проверка для Android 15 (без Toast)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 performAndroid15Setup()
             } else {
@@ -168,9 +168,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             // Очищаем флаги интента для предотвращения проблем
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             
-            // Показываем информацию о том, что приложение открыто из настроек
-            Toast.makeText(this, "Приложение открыто из системных настроек", Toast.LENGTH_SHORT).show()
-            
         } catch (e: Exception) {
             Log.e(TAG, "Ошибка обработки APPLICATION_PREFERENCES", e)
         }
@@ -186,7 +183,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             
             if (packageName == this.packageName) {
                 Log.d(TAG, "Это наше приложение, показываем главный экран")
-                Toast.makeText(this, "Детали приложения App2Proxy", Toast.LENGTH_SHORT).show()
             }
             
         } catch (e: Exception) {
@@ -282,7 +278,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 .putString("android_version", Build.VERSION.RELEASE)
                 .apply()
             
-            // Специальная диагностика для Android 15
+            // Специальная диагностика для Android 15 (без Toast)
             performAndroid15Diagnostics()
             
         } catch (e: Exception) {
@@ -296,7 +292,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         Log.d(TAG, "📱 Выполняем стандартную настройку")
         
         try {
-            // Расширенная диагностика автозагрузки
+            // Расширенная диагностика автозагрузки (без Toast)
             performExtendedBootDiagnostics()
             
         } catch (e: Exception) {
@@ -313,7 +309,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             
             if (selectedUids.isEmpty()) {
                 Log.d(TAG, "❌ Нет правил для диагностики Android 15")
-                Toast.makeText(this, "Нет правил для проверки автозагрузки", Toast.LENGTH_SHORT).show()
                 return
             }
             
@@ -368,27 +363,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                     .putLong("last_manual_restore_android_15", currentTime)
                     .putBoolean("manual_restore_android_15", true)
                     .apply()
-                
-                val message = buildString {
-                    append("🔥 Android 15 обнаружен\n")
-                    if (!android15BootHandled) {
-                        append("❌ Автозагрузка не сработала\n")
-                        append("💡 Добавьте приложение в автозапуск в настройках устройства\n")
-                    } else {
-                        append("⚠️ Автозагрузка сработала, но правила не применились\n")
-                    }
-                    append("🔧 Правила восстановлены вручную")
-                }
-                
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-                
-            } else {
-                val minutes = timeSinceRestore / 60000
-                Toast.makeText(
-                    this, 
-                    "✅ Android 15: Автозагрузка работает ($minutes мин назад)", 
-                    Toast.LENGTH_SHORT
-                ).show()
             }
             
             // Очищаем временные флаги
@@ -402,7 +376,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             // Аварийное восстановление
             try {
                 IptablesService.applyRulesFromPrefs(this)
-                Toast.makeText(this, "Правила восстановлены после ошибки диагностики Android 15", Toast.LENGTH_SHORT).show()
             } catch (restoreError: Exception) {
                 Log.e(TAG, "❌ Ошибка аварийного восстановления Android 15", restoreError)
             }
@@ -429,7 +402,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
     }
     
     private fun performExtendedBootDiagnostics() {
-        // Существующий код диагностики для старых версий Android
+        // Существующий код диагностики для старых версий Android (без Toast)
         try {
             Log.d(TAG, "=== СТАНДАРТНАЯ ДИАГНОСТИКА АВТОЗАГРУЗКИ ===")
             
@@ -448,14 +421,11 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             if (!bootReceiverActivated) {
                 Log.d(TAG, "🔧 Требуется ручное восстановление")
                 IptablesService.applyRulesFromPrefs(this)
-                Toast.makeText(this, "BootReceiver не сработал. Правила восстановлены вручную.\nДобавьте приложение в автозапуск.", Toast.LENGTH_LONG).show()
             } else if (!serviceRestoreSuccess) {
                 Log.d(TAG, "🔧 BootReceiver сработал, но восстановление не удалось")
                 IptablesService.applyRulesFromPrefs(this)
-                Toast.makeText(this, "Автозагрузка частично работает. Правила восстановлены.", Toast.LENGTH_LONG).show()
             } else {
                 Log.d(TAG, "✅ Автозагрузка работает")
-                Toast.makeText(this, "✅ Автозагрузка работает корректно", Toast.LENGTH_SHORT).show()
             }
             
         } catch (e: Exception) {

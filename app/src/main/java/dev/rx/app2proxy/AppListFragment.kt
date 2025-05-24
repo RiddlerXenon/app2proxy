@@ -73,7 +73,6 @@ class AppListFragment : Fragment() {
 
     private fun applyProxyRules() {
         if (!::adapter.isInitialized) {
-            Toast.makeText(requireContext(), "Список приложений не загружен", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -92,18 +91,6 @@ class AppListFragment : Fragment() {
             
             // Применяем правила для текущих выбранных приложений
             IptablesService.applyRules(uidsString)
-            
-            Toast.makeText(requireContext(), 
-                "Правила применены для ${selectedUids.size} приложений" + 
-                if (uidsToRemove.isNotEmpty()) ", удалены для ${uidsToRemove.size}" else "", 
-                Toast.LENGTH_SHORT).show()
-        } else {
-            // Если ничего не выбрано, показываем сообщение только если и раньше ничего не было выбрано
-            if (prevSelectedUids.isEmpty()) {
-                Toast.makeText(requireContext(), "Выберите хотя бы одно приложение", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Все правила удалены", Toast.LENGTH_SHORT).show()
-            }
         }
         
         // Сохраняем текущее состояние

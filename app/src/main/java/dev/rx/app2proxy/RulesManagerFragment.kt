@@ -5,9 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.RecyclerView
 import dev.rx.app2proxy.databinding.FragmentRulesManagerBinding
 
 class RulesManagerFragment : Fragment() {
@@ -68,7 +66,6 @@ class RulesManagerFragment : Fragment() {
         
         if (selectedUids.isEmpty()) {
             rulesAdapter.updateRules(emptyList())
-            Toast.makeText(requireContext(), "Нет активных правил", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -100,7 +97,6 @@ class RulesManagerFragment : Fragment() {
         }
 
         rulesAdapter.updateRules(rulesList)
-        Toast.makeText(requireContext(), "Загружено ${rulesList.size} активных правил", Toast.LENGTH_SHORT).show()
     }
 
     private fun clearAllRules() {
@@ -108,7 +104,6 @@ class RulesManagerFragment : Fragment() {
         val selectedUids = prefs.getStringSet("selected_uids", emptySet()) ?: emptySet()
         
         if (selectedUids.isEmpty()) {
-            Toast.makeText(requireContext(), "Нет правил для удаления", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -123,15 +118,12 @@ class RulesManagerFragment : Fragment() {
         
         // Уведомляем фрагмент списка приложений об изменении
         rulesUpdateListener?.onRulesUpdated()
-        
-        Toast.makeText(requireContext(), "Все правила удалены", Toast.LENGTH_SHORT).show()
     }
 
     private fun removeSelectedRules() {
         val selectedRules = rulesAdapter.getSelectedRules()
         
         if (selectedRules.isEmpty()) {
-            Toast.makeText(requireContext(), "Выберите правила для удаления", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -152,8 +144,6 @@ class RulesManagerFragment : Fragment() {
         
         // Уведомляем фрагмент списка приложений об изменении
         rulesUpdateListener?.onRulesUpdated()
-        
-        Toast.makeText(requireContext(), "Удалено ${selectedRules.size} правил", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {

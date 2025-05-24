@@ -2,7 +2,6 @@
 <data-extraction-rules>
     <cloud-backup>
         <include domain="sharedpref" path="proxy_prefs.xml"/>
-        <exclude domain="sharedpref" path="device_preferences.xml"/>
     </cloud-backup>
     <device-transfer>
         <include domain="sharedpref" path="proxy_prefs.xml"/>

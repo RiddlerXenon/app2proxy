@@ -53,6 +53,8 @@ class AppListFragment : Fragment() {
         if (::adapter.isInitialized) {
             adapter.selectAll()
             saveSelectedUids(adapter.getSelectedUids())
+            // Пересортировываем список после выбора всех
+            resortAppList(adapter.getSelectedUids())
         }
     }
 
@@ -60,6 +62,8 @@ class AppListFragment : Fragment() {
         if (::adapter.isInitialized) {
             adapter.deselectAll()
             saveSelectedUids(adapter.getSelectedUids())
+            // Пересортировываем список после снятия выбора
+            resortAppList(adapter.getSelectedUids())
         }
     }
 
@@ -68,6 +72,8 @@ class AppListFragment : Fragment() {
         if (::adapter.isInitialized) {
             val currentSelected = getPrefs().getStringSet("selected_uids", emptySet()) ?: emptySet()
             adapter.updateSelectedStates(currentSelected)
+            // Пересортировываем список после обновления состояния
+            resortAppList(currentSelected)
         }
     }
 
@@ -110,14 +116,49 @@ class AppListFragment : Fragment() {
             return
         }
         
+        // Сортируем приложения: сначала выбранные, потом остальные
+        val sortedApps = sortAppsBySelection(apps, prevSelected)
+        
         if (!::adapter.isInitialized) {
-            adapter = AppListAdapter(apps, prevSelected, requireContext().packageManager) { updatedUids ->
+            adapter = AppListAdapter(sortedApps, prevSelected, requireContext().packageManager) { updatedUids ->
                 saveSelectedUids(updatedUids)
+                // При изменении выбора пересортировываем список
+                resortAppList(updatedUids)
             }
             binding.recyclerView.adapter = adapter
         } else {
-            adapter.updateData(apps, prevSelected)
+            adapter.updateData(sortedApps, prevSelected)
         }
+    }
+
+    // Метод для сортировки приложений по статусу выбора
+    private fun sortAppsBySelection(apps: List<AppInfo>, selectedUids: Set<String>): List<AppInfo> {
+        val selectedApps = mutableListOf<AppInfo>()
+        val unselectedApps = mutableListOf<AppInfo>()
+
+        apps.forEach { app ->
+            if (selectedUids.contains(app.uid.toString())) {
+                selectedApps.add(app)
+            } else {
+                unselectedApps.add(app)
+            }
+        }
+
+        // Сортируем каждую группу по имени
+        selectedApps.sortBy { it.appName }
+        unselectedApps.sortBy { it.appName }
+
+        // Возвращаем: сначала выбранные, потом невыбранные
+        return selectedApps + unselectedApps
+    }
+
+    // Метод для пересортировки списка при изменении выбора
+    private fun resortAppList(selectedUids: Set<String>) {
+        if (!::adapter.isInitialized) return
+
+        val currentApps = adapter.getCurrentApps()
+        val sortedApps = sortAppsBySelection(currentApps, selectedUids)
+        adapter.updateDataWithSort(sortedApps, selectedUids)
     }
 
     private fun getPrefs() = requireContext().getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
@@ -144,7 +185,6 @@ class AppListFragment : Fragment() {
                         null // Пропускаем приложения, которые не удается обработать
                     }
                 }
-                .sortedBy { it.appName }
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "Ошибка загрузки приложений: ${e.message}", Toast.LENGTH_LONG).show()
             emptyList()

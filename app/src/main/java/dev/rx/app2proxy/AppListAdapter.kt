@@ -58,6 +58,8 @@ class AppListAdapter(
 
     fun getSelectedUids(): Set<String> = selected
 
+    fun getCurrentApps(): List<AppInfo> = apps
+
     fun selectAll() {
         selected.clear()
         selected.addAll(apps.map { it.uid.toString() })
@@ -78,7 +80,15 @@ class AppListAdapter(
         notifyDataSetChanged()
     }
 
-    // Новый метод для обновления только состояния выбранных элементов
+    // Метод для обновления данных с сортировкой
+    fun updateDataWithSort(newApps: List<AppInfo>, selectedUids: Set<String>) {
+        this.apps = newApps
+        selected.clear()
+        selected.addAll(selectedUids)
+        notifyDataSetChanged()
+    }
+
+    // Метод для обновления только состояния выбранных элементов
     fun updateSelectedStates(selectedUids: Set<String>) {
         selected.clear()
         selected.addAll(selectedUids)

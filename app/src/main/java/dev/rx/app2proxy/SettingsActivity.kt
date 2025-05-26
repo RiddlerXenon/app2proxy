@@ -160,47 +160,58 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupEdgeToEdge() {
-        // Включаем edge-to-edge режим с использованием WindowCompat (современный API)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        try {
+            // Включаем edge-to-edge режим с использованием WindowCompat (современный API)
+            WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Получаем настройки темы
-        val isDarkTheme = prefs.getBoolean("dark_theme", true)
+            // Получаем настройки темы
+            val isDarkTheme = prefs.getBoolean("dark_theme", true)
 
-        // Настраиваем цвета статус бара и навигационной панели
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Для API 30+ используем новый WindowInsetsController
-            val insetsController = window.insetsController
-            if (isDarkTheme) {
-                insetsController?.setSystemBarsAppearance(0, 
-                    android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
-                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
+            // Настраиваем цвета статус бара и навигационной панели
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // Для API 30+ используем новый WindowInsetsController
+                val insetsController = window.insetsController
+                if (isDarkTheme) {
+                    insetsController?.setSystemBarsAppearance(0, 
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
+                } else {
+                    insetsController?.setSystemBarsAppearance(
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
+                }
             } else {
-                insetsController?.setSystemBarsAppearance(
-                    android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
-                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
-                    android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
-                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
+                // Для более старых версий используем WindowInsetsControllerCompat
+                val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+                windowInsetsController.isAppearanceLightStatusBars = !isDarkTheme
+                windowInsetsController.isAppearanceLightNavigationBars = !isDarkTheme
             }
-        } else {
-            // Для более старых версий используем WindowInsetsControllerCompat
-            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-            windowInsetsController.isAppearanceLightStatusBars = !isDarkTheme
-            windowInsetsController.isAppearanceLightNavigationBars = !isDarkTheme
-        }
 
-        // Устанавливаем обработчик для системных отступов
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            
-            // Применяем отступы с учетом системных баров
-            view.setPadding(
-                systemBars.left,
-                systemBars.top,
-                systemBars.right,
-                systemBars.bottom
-            )
-            
-            insets
+            // Устанавливаем обработчик для системных отступов
+            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+                // Получаем отступы для системных баров
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                
+                // AppBarLayout автоматически обработает верхний отступ благодаря fitsSystemWindows="true"
+                // Нам нужно только обработать боковые отступы, нижний отступ тоже применяем
+                binding.root.setPadding(
+                    systemBars.left,
+                    0, // Верхний отступ обрабатывается AppBarLayout
+                    systemBars.right,
+                    systemBars.bottom // Нижний отступ для навигационной панели
+                )
+                
+                insets
+            }
+        } catch (e: Exception) {
+            // В случае ошибки используем fallback подход
+            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                view.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom)
+                insets
+            }
         }
     }
 

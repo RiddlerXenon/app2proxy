@@ -5,7 +5,9 @@
     <color name="amoled_on_background">#FFFFFFFF</color>
     <color name="amoled_surface">#FF000000</color>
     <color name="amoled_on_surface">#FFFFFFFF</color>
-    <color name="amoled_surface_variant">#FF1A1A1A</color>
+    <!-- Карточки приложений теперь светлее основного фона -->
+    <color name="amoled_surface_variant">#FF2A2A2A</color>
+    <color name="amoled_card_surface">#FF1A1A1A</color>
     <color name="amoled_on_surface_variant">#FFCAC4D0</color>
     <color name="amoled_outline">#FF938F99</color>
     <color name="amoled_error_container">#FF1A0A0A</color>

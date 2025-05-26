@@ -111,4 +111,11 @@ object AmoledDynamicColorScheme {
     fun getAmoledBackgroundColor(): Int {
         return android.graphics.Color.BLACK // Всегда черный для AMOLED
     }
+    
+    /**
+     * Получает цвет карточек для AMOLED темы (светлее основного фона)
+     */
+    fun getAmoledCardColor(): Int {
+        return 0xFF1A1A1A.toInt() // Темно-серый цвет для карточек
+    }
 }

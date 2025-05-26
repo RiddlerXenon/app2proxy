@@ -115,6 +115,7 @@
         
         <!-- Улучшенные Material 3 стили -->
         <item name="materialButtonStyle">@style/Widget.App.Button</item>
+        <!-- Внутри Theme.App2Proxy.Amoled -->
         <item name="materialCardViewStyle">@style/Widget.App.CardView.Amoled</item>
     </style>
 </resources>

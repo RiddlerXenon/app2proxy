@@ -54,29 +54,16 @@ class SettingsActivity : AppCompatActivity() {
         val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
         val isDarkTheme = prefs.getBoolean("dark_theme", true)
         
+        if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this)
+        }
+
         Log.d(TAG, "🎨 Применяем тему в Settings: MaterialYou=$useMaterialYou, AMOLED=$useAmoledTheme, Dark=$isDarkTheme")
         
         // Сначала выбираем базовую тему
         when {
-            useAmoledTheme && isDarkTheme -> {
-                setTheme(R.style.Theme_App2Proxy_Amoled)
-                Log.d(TAG, "✅ AMOLED тема применена в Settings")
-            }
-            else -> {
-                setTheme(R.style.Theme_App2Proxy)
-                Log.d(TAG, "✅ Стандартная тема применена в Settings")
-            }
-        }
-        
-        // Затем применяем Material You поверх базовой темы, если включен
-        if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            try {
-                // Применяем динамические цвета
-                DynamicColors.applyToActivityIfAvailable(this)
-                Log.d(TAG, "✅ Material You применен в Settings")
-            } catch (e: Exception) {
-                Log.e(TAG, "❌ Ошибка применения Material You в Settings", e)
-            }
+            useAmoledTheme && isDarkTheme -> setTheme(R.style.Theme_App2Proxy_Amoled)
+            else -> setTheme(R.style.Theme_App2Proxy)
         }
     }
 

@@ -1,42 +1,27 @@
 package dev.rx.app2proxy
 
-import android.content.Context
-import android.content.res.Configuration
+import android.app.Activity
 import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.color.DynamicColors
 
-/**
- * Утилиты для создания AMOLED темы с динамическими цветами Material You
- * Сохраняет черный фон AMOLED темы, но применяет динамические цвета к другим элементам
- */
 object AmoledDynamicColorScheme {
-    
-    private const val TAG = "AmoledDynamicColors"
+    private const val TAG = "AmoledDynamicColorScheme"
     
     /**
-     * Применяет динамические цвета с сохранением AMOLED фона
+     * Применяет AMOLED динамические цвета с сохранением черного фона
      */
-    @RequiresApi(Build.VERSION_CODES.S)
-    fun applyAmoledDynamicColors(activity: android.app.Activity) {
+    fun applyAmoledDynamicColors(activity: Activity) {
         try {
-            Log.d(TAG, "🎨 Применяем AMOLED динамические цвета")
+            Log.d(TAG, "🎨 Применяем AMOLED + Material You динамические цвета")
             
-            // Сначала применяем стандартные динамические цвета Material You
-            com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(activity)
+            // Сначала применяем стандартные динамические цвета
+            DynamicColors.applyToActivityIfAvailable(activity)
             
-            // Теперь принудительно переопределяем только фоновые цвета на черные
-            val window = activity.window
-            
-            // Делаем статус бар и навигацию прозрачными
-            window.statusBarColor = android.graphics.Color.TRANSPARENT
-            window.navigationBarColor = android.graphics.Color.TRANSPARENT
-            
-            // Устанавливаем черный фон только для корневого элемента
-            // Остальные цвета (кнопки, карточки, акценты) останутся динамическими
-            window.decorView.setBackgroundColor(android.graphics.Color.BLACK)
+            // Затем принудительно переопределяем фон и системные элементы на черный
+            activity.window.decorView.setBackgroundColor(android.graphics.Color.BLACK)
             
             Log.d(TAG, "✅ AMOLED динамические цвета применены успешно")
             
@@ -110,12 +95,5 @@ object AmoledDynamicColorScheme {
      */
     fun getAmoledBackgroundColor(): Int {
         return android.graphics.Color.BLACK // Всегда черный для AMOLED
-    }
-    
-    /**
-     * Получает цвет карточек для AMOLED темы (светлее основного фона)
-     */
-    fun getAmoledCardColor(): Int {
-        return 0xFF1A1A1A.toInt() // Темно-серый цвет для карточек
     }
 }

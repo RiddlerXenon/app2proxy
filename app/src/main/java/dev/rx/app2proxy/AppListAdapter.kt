@@ -4,6 +4,7 @@ import android.content.pm.PackageManager
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 import dev.rx.app2proxy.databinding.ItemAppBinding
 
 class AppListAdapter(
@@ -53,6 +54,38 @@ class AppListAdapter(
             root.setOnClickListener {
                 checkBox.toggle()
             }
+
+            // Применяем AMOLED стили к карточке, если включена AMOLED тема
+            applyAmoledStyleIfNeeded(holder)
+        }
+    }
+
+    private fun applyAmoledStyleIfNeeded(holder: AppViewHolder) {
+        try {
+            val context = holder.itemView.context
+            val prefs = context.getSharedPreferences("proxy_prefs", android.content.Context.MODE_PRIVATE)
+            val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
+            val isDarkTheme = prefs.getBoolean("dark_theme", true)
+            
+            if (useAmoledTheme && isDarkTheme) {
+                // Проверяем, что root действительно MaterialCardView
+                val cardView = holder.binding.root
+                if (cardView is MaterialCardView) {
+                    // Получаем цвет для карточки из ресурсов
+                    val cardColor = androidx.core.content.ContextCompat.getColor(
+                        context, 
+                        R.color.amoled_card_surface
+                    )
+                    cardView.setCardBackgroundColor(cardColor)
+                    
+                    // Убираем тень и elevation для AMOLED
+                    cardView.cardElevation = 0f
+                    cardView.strokeWidth = 0
+                }
+            }
+        } catch (e: Exception) {
+            // Игнорируем ошибки применения стилей
+            android.util.Log.w("AppListAdapter", "Не удалось применить AMOLED стиль к карточке", e)
         }
     }
 

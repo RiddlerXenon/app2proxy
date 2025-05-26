@@ -80,7 +80,7 @@ object AmoledDynamicColorScheme {
             Log.d(TAG, "🎨 Применяем AMOLED стиль к карточке")
             
             // Устанавливаем темный фон для карточки
-            cardView.setCardBackgroundColor(Color.parseColor("#1C1C1C"))
+            cardView.setCardBackgroundColor(Color.parseColor("#FF0A0909"))
             
             // Устанавливаем минимальную высоту границы для лучшего вида
             cardView.cardElevation = 2f

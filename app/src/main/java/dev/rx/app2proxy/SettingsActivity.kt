@@ -16,30 +16,36 @@ import com.google.android.material.color.DynamicColors
 import dev.rx.app2proxy.databinding.ActivitySettingsBinding
 
 class SettingsActivity : AppCompatActivity() {
-    private lateinit var binding: ActivitySettingsBinding
-    private lateinit var prefs: SharedPreferences
     
     companion object {
         private const val TAG = "SettingsActivity"
+        private const val DEFAULT_PROXY_PORT = 12345
+        private const val DEFAULT_DNS_PORT = 10853
     }
+    
+    private lateinit var binding: ActivitySettingsBinding
+    private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Применяем тему перед вызовом super.onCreate()
+        // Применяем тему до создания контента
         applySelectedTheme()
-        
         super.onCreate(savedInstanceState)
         
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // Настраиваем edge-to-edge режим
+        
+        // Настройка edge-to-edge
         setupEdgeToEdge()
-
+        
+        // Инициализируем SharedPreferences
+        prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
+        
         // Настройка toolbar
         setupToolbar()
 
-        // Настройка переключателей
+        // Настройка переключателей и полей
         setupSwitches()
+        setupNetworkFields()
         
         // Применяем AMOLED фон после создания интерфейса
         applyAmoledThemeIfNeeded()
@@ -114,11 +120,27 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupSwitches() {
+        // Проверяем поддержку Material You для динамических цветов
+        val supportsMaterialYou = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        
+        if (supportsMaterialYou) {
+            Log.d(TAG, "✅ Material You поддерживается (Android 12+)")
+        } else {
+            Log.d(TAG, "⚠️ Material You не поддерживается (Android < 12)")
+        }
+        
         // Автозапуск
         binding.switchAutostart.isChecked = prefs.getBoolean("autostart", false)
         binding.switchAutostart.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("autostart", isChecked).apply()
             Log.d(TAG, "Автозапуск ${if (isChecked) "включен" else "отключен"}")
+            
+            val message = if (isChecked) {
+                "Автозапуск включен. Правила будут восстановлены после перезагрузки."
+            } else {
+                "Автозапуск отключен."
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
 
         // Темная тема
@@ -146,10 +168,10 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // Material You
-        binding.switchMaterialYou.isEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        binding.switchMaterialYou.isEnabled = supportsMaterialYou
         binding.switchMaterialYou.isChecked = prefs.getBoolean("material_you", false)
         binding.switchMaterialYou.setOnCheckedChangeListener { _, isChecked ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (supportsMaterialYou) {
                 prefs.edit().putBoolean("material_you", isChecked).apply()
                 
                 Log.d(TAG, "Material You ${if (isChecked) "включен" else "отключен"}")
@@ -159,10 +181,10 @@ class SettingsActivity : AppCompatActivity() {
                     if (prefs.getBoolean("amoled_theme", false)) {
                         "Material You включен для AMOLED темы.\nДинамические цвета применятся к элементам интерфейса,\nфон и AppBar останутся черными."
                     } else {
-                        "Material You включен"
+                        "Material You включен. Цвета будут извлечены из ваших обоев."
                     }
                 } else {
-                    "Material You отключен"
+                    "Material You отключен. Используются стандартные цвета."
                 }
                 
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
@@ -174,7 +196,7 @@ class SettingsActivity : AppCompatActivity() {
                 finish()
             } else {
                 binding.switchMaterialYou.isChecked = false
-                Toast.makeText(this, "Material You недоступен на этой версии Android", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Material You недоступен на Android версии ниже 12", Toast.LENGTH_SHORT).show()
                 Log.w(TAG, "Попытка включить Material You на неподдерживаемой версии Android")
             }
         }
@@ -194,12 +216,12 @@ class SettingsActivity : AppCompatActivity() {
             
             val message = if (isChecked) {
                 if (prefs.getBoolean("material_you", false)) {
-                    "AMOLED тема включена с поддержкой Material You.\nДинамические цвета будут применены к элементам интерфейса,\nфон и AppBar станут черными."
+                    "AMOLED тема включена с поддержкой Material You.\nДинамические цвета будут применены к элементам интерфейса,\nфон и AppBar станут черными для экономии батареи."
                 } else {
-                    "AMOLED тема включена.\nФон и AppBar станут черными для экономии батареи."
+                    "AMOLED тема включена.\nФон и AppBar станут абсолютно черными для экономии батареи OLED экранов."
                 }
             } else {
-                "AMOLED тема отключена"
+                "AMOLED тема отключена. Используется стандартная темная тема."
             }
             
             Log.d(TAG, message)
@@ -214,6 +236,137 @@ class SettingsActivity : AppCompatActivity() {
 
         // Обновляем состояние AMOLED переключателя
         updateAmoledSwitchState()
+    }
+
+    private fun setupNetworkFields() {
+        // Загружаем сохраненные порты
+        val proxyPort = prefs.getInt("proxy_port", DEFAULT_PROXY_PORT)
+        val dnsPort = prefs.getInt("dns_port", DEFAULT_DNS_PORT)
+        
+        binding.editTextProxyPort.setText(proxyPort.toString())
+        binding.editTextDnsPort.setText(dnsPort.toString())
+        
+        // Настраиваем валидацию и сохранение
+        binding.editTextProxyPort.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                validateAndSaveProxyPort()
+            }
+        }
+        
+        binding.editTextDnsPort.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                validateAndSaveDnsPort()
+            }
+        }
+        
+        Log.d(TAG, "✅ Сетевые поля настроены: прокси=$proxyPort, DNS=$dnsPort")
+    }
+    
+    private fun validateAndSaveProxyPort() {
+        val portText = binding.editTextProxyPort.text.toString().trim()
+        val port = portText.toIntOrNull()
+        
+        when {
+            port == null -> {
+                binding.textInputLayoutProxyPort.error = "Введите корректный номер порта"
+                binding.editTextProxyPort.setText(prefs.getInt("proxy_port", DEFAULT_PROXY_PORT).toString())
+            }
+            port < 1024 || port > 65535 -> {
+                binding.textInputLayoutProxyPort.error = "Порт должен быть в диапазоне 1024-65535"
+                binding.editTextProxyPort.setText(prefs.getInt("proxy_port", DEFAULT_PROXY_PORT).toString())
+            }
+            port == prefs.getInt("dns_port", DEFAULT_DNS_PORT) -> {
+                binding.textInputLayoutProxyPort.error = "Порт не должен совпадать с портом DNS"
+                binding.editTextProxyPort.setText(prefs.getInt("proxy_port", DEFAULT_PROXY_PORT).toString())
+            }
+            else -> {
+                binding.textInputLayoutProxyPort.error = null
+                val oldPort = prefs.getInt("proxy_port", DEFAULT_PROXY_PORT)
+                
+                // Если порт действительно изменился, очищаем старые правила
+                if (oldPort != port) {
+                    clearOldRulesAndUpdatePort("proxy_port", oldPort, port)
+                    Log.d(TAG, "Порт прокси изменен с $oldPort на $port")
+                    Toast.makeText(this, "Порт прокси изменен на $port. Старые правила очищены.", Toast.LENGTH_LONG).show()
+                } else {
+                    Log.d(TAG, "Порт прокси не изменился: $port")
+                }
+            }
+        }
+    }
+    
+    private fun validateAndSaveDnsPort() {
+        val portText = binding.editTextDnsPort.text.toString().trim()
+        val port = portText.toIntOrNull()
+        
+        when {
+            port == null -> {
+                binding.textInputLayoutDnsPort.error = "Введите корректный номер порта"
+                binding.editTextDnsPort.setText(prefs.getInt("dns_port", DEFAULT_DNS_PORT).toString())
+            }
+            port < 1024 || port > 65535 -> {
+                binding.textInputLayoutDnsPort.error = "Порт должен быть в диапазоне 1024-65535"
+                binding.editTextDnsPort.setText(prefs.getInt("dns_port", DEFAULT_DNS_PORT).toString())
+            }
+            port == prefs.getInt("proxy_port", DEFAULT_PROXY_PORT) -> {
+                binding.textInputLayoutDnsPort.error = "Порт не должен совпадать с портом прокси"
+                binding.editTextDnsPort.setText(prefs.getInt("dns_port", DEFAULT_DNS_PORT).toString())
+            }
+            else -> {
+                binding.textInputLayoutDnsPort.error = null
+                val oldPort = prefs.getInt("dns_port", DEFAULT_DNS_PORT)
+                
+                // Если порт действительно изменился, очищаем старые правила
+                if (oldPort != port) {
+                    clearOldRulesAndUpdatePort("dns_port", oldPort, port)
+                    Log.d(TAG, "Порт DNS изменен с $oldPort на $port")
+                    Toast.makeText(this, "Порт DNS изменен на $port. Старые правила очищены.", Toast.LENGTH_LONG).show()
+                } else {
+                    Log.d(TAG, "Порт DNS не изменился: $port")
+                }
+            }
+        }
+    }
+
+    /**
+     * Очищает старые правила и обновляет порт в настройках
+     */
+    private fun clearOldRulesAndUpdatePort(portType: String, oldPort: Int, newPort: Int) {
+        try {
+            // Получаем список активных UID
+            val selectedUids = prefs.getStringSet("selected_uids", emptySet()) ?: emptySet()
+            
+            if (selectedUids.isNotEmpty()) {
+                val uidsString = selectedUids.joinToString(" ")
+                
+                // Получаем текущие порты (один старый, один новый)
+                val oldProxyPort = if (portType == "proxy_port") oldPort else prefs.getInt("proxy_port", DEFAULT_PROXY_PORT)
+                val oldDnsPort = if (portType == "dns_port") oldPort else prefs.getInt("dns_port", DEFAULT_DNS_PORT)
+                
+                Log.d(TAG, "🧹 Очистка старых правил перед сменой $portType с $oldPort на $newPort")
+                Log.d(TAG, "Активные UID для очистки: $uidsString")
+                Log.d(TAG, "Старые порты для очистки: прокси=$oldProxyPort, DNS=$oldDnsPort")
+                
+                // Очищаем правила со старыми портами
+                IptablesService.clearRulesWithOldPorts(this, uidsString, oldProxyPort, oldDnsPort)
+                
+                // Сохраняем новый порт
+                prefs.edit().putInt(portType, newPort).apply()
+                
+                // Применяем правила с новыми портами
+                Log.d(TAG, "🔄 Применяем правила с новыми портами")
+                IptablesService.applyRules(this, uidsString)
+                
+                Log.d(TAG, "✅ Обновление портов завершено успешно")
+            } else {
+                // Если нет активных UID, просто сохраняем новый порт
+                prefs.edit().putInt(portType, newPort).apply()
+                Log.d(TAG, "📝 Порт сохранен без очистки правил (нет активных UID)")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка при обновлении портов", e)
+            Toast.makeText(this, "Ошибка при обновлении портов: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun updateAmoledSwitchState() {
@@ -302,5 +455,12 @@ class SettingsActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Сохраняем порты при выходе из активности
+        validateAndSaveProxyPort()
+        validateAndSaveDnsPort()
     }
 }

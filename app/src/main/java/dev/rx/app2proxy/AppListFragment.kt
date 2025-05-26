@@ -93,11 +93,11 @@ class AppListFragment : Fragment() {
             val uidsToRemove = prevSelectedUids - selectedUids
             if (uidsToRemove.isNotEmpty()) {
                 val uidsToRemoveString = uidsToRemove.joinToString(" ")
-                IptablesService.clearRules(uidsToRemoveString)
+                IptablesService.clearRules(requireContext(), uidsToRemoveString)
             }
             
             // Применяем правила для текущих выбранных приложений
-            IptablesService.applyRules(uidsString)
+            IptablesService.applyRules(requireContext(), uidsString)
         }
         
         // Сохраняем текущее состояние

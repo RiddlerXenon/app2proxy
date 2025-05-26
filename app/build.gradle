@@ -8,7 +8,7 @@ android {
     compileSdk 36
 
     buildFeatures {
-        viewBinding true  // Изменяем с dataBinding на viewBinding
+        viewBinding true
         dataBinding true
     }
 
@@ -39,9 +39,16 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.12.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01' // Добавлено
+    implementation 'androidx.core:core-ktx:1.15.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    
+    // Обновляем Material Design Components до версии с поддержкой Material 3
+    implementation 'com.google.android.material:material:1.12.0'
+    
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01'
+    
+    // Добавляем поддержку корутин
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
 }

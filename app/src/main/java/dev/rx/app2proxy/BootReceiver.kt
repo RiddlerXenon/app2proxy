@@ -14,6 +14,8 @@ class BootReceiver : BroadcastReceiver() {
     
     companion object {
         private const val TAG = "App2ProxyBootReceiver"
+        private const val DEFAULT_PROXY_PORT = 12345
+        private const val DEFAULT_DNS_PORT = 10853
     }
     
     override fun onReceive(context: Context, intent: Intent) {
@@ -227,7 +229,7 @@ class BootReceiver : BroadcastReceiver() {
                     Log.d(TAG, "🎯 Прямое применение правил для Android 15")
                     
                     val uidsString = selectedUids.joinToString(" ")
-                    val result = applyRulesDirectlyAndroid15(uidsString)
+                    val result = applyRulesDirectlyAndroid15(context, uidsString)
                     
                     Log.d(TAG, "📝 Результат Android 15: $result")
                     writeToLogFile(context, "ANDROID_15_RESULT: $result")
@@ -288,7 +290,7 @@ class BootReceiver : BroadcastReceiver() {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val uidsString = selectedUids.joinToString(" ")
-                        val result = applyRulesDirectlyStandard(uidsString)
+                        val result = applyRulesDirectlyStandard(context, uidsString)
                         writeToLogFile(context, "STANDARD_FALLBACK_RESULT: $result")
                     } catch (fallbackError: Exception) {
                         Log.e(TAG, "❌ Ошибка стандартного fallback", fallbackError)
@@ -299,13 +301,16 @@ class BootReceiver : BroadcastReceiver() {
         }
     }
     
-    // Остальные методы остаются без изменений...
-    private suspend fun applyRulesDirectlyAndroid15(uids: String): String {
+    private suspend fun applyRulesDirectlyAndroid15(context: Context, uids: String): String {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "🔥 Применяем правила напрямую для Android 15")
                 
-                val script = buildAndroid15Script(uids)
+                val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
+                val proxyPort = prefs.getInt("proxy_port", DEFAULT_PROXY_PORT)
+                val dnsPort = prefs.getInt("dns_port", DEFAULT_DNS_PORT)
+                
+                val script = buildAndroid15Script(uids, proxyPort, dnsPort)
                 executeRootCommandAndroid15(script)
                 
             } catch (e: Exception) {
@@ -315,12 +320,16 @@ class BootReceiver : BroadcastReceiver() {
         }
     }
     
-    private suspend fun applyRulesDirectlyStandard(uids: String): String {
+    private suspend fun applyRulesDirectlyStandard(context: Context, uids: String): String {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "📱 Применяем правила напрямую стандартно")
                 
-                val script = buildStandardScript(uids)
+                val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
+                val proxyPort = prefs.getInt("proxy_port", DEFAULT_PROXY_PORT)
+                val dnsPort = prefs.getInt("dns_port", DEFAULT_DNS_PORT)
+                
+                val script = buildStandardScript(uids, proxyPort, dnsPort)
                 executeRootCommandStandard(script)
                 
             } catch (e: Exception) {
@@ -330,7 +339,7 @@ class BootReceiver : BroadcastReceiver() {
         }
     }
     
-    private fun buildAndroid15Script(uids: String): String {
+    private fun buildAndroid15Script(uids: String, proxyPort: Int, dnsPort: Int): String {
         return """
             #!/system/bin/sh
             
@@ -339,11 +348,13 @@ class BootReceiver : BroadcastReceiver() {
             echo "Android версия: $(getprop ro.build.version.release)"
             echo "API уровень: $(getprop ro.build.version.sdk)"
             echo "UID для восстановления: $uids"
+            echo "Порт прокси: $proxyPort"
+            echo "Порт DNS: $dnsPort"
             
             # Константы
             UIDS="$uids"
-            PORT=12345
-            DNS_PORT=10853
+            PORT=$proxyPort
+            DNS_PORT=$dnsPort
             
             # Проверяем root доступ
             if [ "$(id -u)" != "0" ]; then
@@ -404,7 +415,7 @@ class BootReceiver : BroadcastReceiver() {
                 
                 # TCP правило
                 if iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT 2>/dev/null; then
-                    echo "✅ TCP правило добавлено для UID ${'$'}UID"
+                    echo "✅ TCP правило добавлено для UID ${'$'}UID (порт ${'$'}PORT)"
                     SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
                 else
                     echo "❌ Ошибка добавления TCP правила для UID ${'$'}UID"
@@ -413,7 +424,7 @@ class BootReceiver : BroadcastReceiver() {
                 
                 # DNS правило
                 if iptables -t nat -A OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}DNS_PORT 2>/dev/null; then
-                    echo "✅ DNS правило добавлено для UID ${'$'}UID"
+                    echo "✅ DNS правило добавлено для UID ${'$'}UID (порт ${'$'}DNS_PORT)"
                     SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
                 else
                     echo "❌ Ошибка добавления DNS правила для UID ${'$'}UID"
@@ -428,15 +439,16 @@ class BootReceiver : BroadcastReceiver() {
             echo "Успешных операций: ${'$'}SUCCESS_COUNT"
             echo "Ошибок: ${'$'}ERROR_COUNT"
             echo "Обработанных UID: $(echo ${'$'}UIDS | wc -w)"
+            echo "Используемые порты: прокси=${'$'}PORT, DNS=${'$'}DNS_PORT"
             
             # Проверка результата
             echo "=== ПРОВЕРКА ПРАВИЛ ==="
-            FOUND_RULES=$(iptables -t nat -L OUTPUT -n | grep -E "(12345|10853)" | wc -l)
+            FOUND_RULES=$(iptables -t nat -L OUTPUT -n | grep -E "(${'$'}PORT|${'$'}DNS_PORT)" | wc -l)
             echo "Найдено активных правил: ${'$'}FOUND_RULES"
             
             if [ ${'$'}FOUND_RULES -gt 0 ]; then
                 echo "✅ ANDROID 15: ПРАВИЛА УСПЕШНО ПРИМЕНЕНЫ"
-                echo "Applied rules for UIDs: ${'$'}UIDS"
+                echo "Applied rules for UIDs: ${'$'}UIDS with proxy port ${'$'}PORT and DNS port ${'$'}DNS_PORT"
             else
                 echo "⚠️ ANDROID 15: ПРАВИЛА НЕ ОБНАРУЖЕНЫ"
                 echo "No rules found for UIDs: ${'$'}UIDS"
@@ -446,17 +458,19 @@ class BootReceiver : BroadcastReceiver() {
         """.trimIndent()
     }
     
-    private fun buildStandardScript(uids: String): String {
+    private fun buildStandardScript(uids: String, proxyPort: Int, dnsPort: Int): String {
         return """
             #!/system/bin/sh
             
             echo "=== App2Proxy Standard Boot Script ==="
             echo "Время: $(date)"
             echo "UID для восстановления: $uids"
+            echo "Порт прокси: $proxyPort"
+            echo "Порт DNS: $dnsPort"
             
             UIDS="$uids"
-            PORT=12345
-            DNS_PORT=10853
+            PORT=$proxyPort
+            DNS_PORT=$dnsPort
             
             if ! command -v iptables >/dev/null 2>&1; then
                 echo "ОШИБКА: iptables не найден"
@@ -478,9 +492,11 @@ class BootReceiver : BroadcastReceiver() {
                 # Добавление
                 iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT
                 iptables -t nat -A OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}DNS_PORT
+                
+                echo "Правила добавлены для UID ${'$'}UID (прокси: ${'$'}PORT, DNS: ${'$'}DNS_PORT)"
             done
             
-            echo "Applied rules for UIDs: ${'$'}UIDS"
+            echo "Applied rules for UIDs: ${'$'}UIDS with proxy port ${'$'}PORT and DNS port ${'$'}DNS_PORT"
         """.trimIndent()
     }
     

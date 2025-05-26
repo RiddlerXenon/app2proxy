@@ -74,7 +74,7 @@ class AutoStartService : Service() {
             updateNotification("Применяем правила iptables...")
             
             val uidsString = selectedUids.joinToString(" ")
-            IptablesService.applyRules(uidsString)
+            IptablesService.applyRules(this@AutoStartService, uidsString)
             
             // Сохраняем информацию об успешном применении
             prefs.edit()

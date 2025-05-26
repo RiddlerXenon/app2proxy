@@ -12,8 +12,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            app:elevation="0dp"
-            style="@style/Widget.Material3.AppBarLayout">
+            app:elevation="0dp">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
@@ -22,8 +21,7 @@
                 android:background="?attr/colorSurface"
                 app:title="@string/action_settings"
                 app:titleCentered="true"
-                app:titleTextColor="?attr/colorOnSurface"
-                style="@style/Widget.Material3.Toolbar" />
+                app:titleTextColor="?attr/colorOnSurface" />
 
         </com.google.android.material.appbar.AppBarLayout>
 
@@ -62,6 +60,7 @@
                             android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="16dp" />
 
+                        <!-- Используем SwitchMaterial вместо MaterialSwitch для совместимости -->
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchAutostart"
                             android:layout_width="match_parent"
@@ -70,6 +69,87 @@
                             android:textAppearance="?attr/textAppearanceBodyLarge"
                             android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="12dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Карточка с настройками сети -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Настройки сети"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textColor="?attr/colorOnSurface"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Настройка портов для прокси-сервера и DNS"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginBottom="16dp" />
+
+                        <!-- Поле для порта прокси -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/textInputLayoutProxyPort"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="16dp"
+                            android:hint="Порт прокси-сервера"
+                            app:helperText="По умолчанию: 12345"
+                            app:counterEnabled="true"
+                            app:counterMaxLength="5"
+                            app:startIconDrawable="@drawable/ic_router_24"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editTextProxyPort"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="number"
+                                android:maxLength="5"
+                                android:text="12345" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Поле для порта DNS -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/textInputLayoutDnsPort"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:hint="Порт DNS-сервера"
+                            app:helperText="По умолчанию: 10853"
+                            app:counterEnabled="true"
+                            app:counterMaxLength="5"
+                            app:startIconDrawable="@drawable/ic_dns_24"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editTextDnsPort"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="number"
+                                android:maxLength="5"
+                                android:text="10853" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
 
                     </LinearLayout>
 
@@ -105,6 +185,7 @@
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginBottom="16dp" />
 
+                        <!-- SwitchMaterial переключатели -->
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchTheme"
                             android:layout_width="match_parent"
@@ -122,7 +203,7 @@
                             android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="8dp" />
 
-                        <!-- Новый переключатель AMOLED темы -->
+                        <!-- SwitchMaterial для AMOLED темы -->
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchAmoledTheme"
                             android:layout_width="match_parent"

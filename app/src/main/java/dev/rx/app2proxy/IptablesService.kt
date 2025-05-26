@@ -145,13 +145,24 @@ object IptablesService {
               done
             done
 
-            # Добавление новых правил
+            # Добавление новых правил (очистка уже произведена ранее)
             for UID in ${'$'}UIDS; do
               echo "Добавление правил для UID: ${'$'}UID"
-              # TCP трафик перенаправляется на прокси
-              iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT
-              # UDP DNS запросы перенаправляются на DNS сервер
-              iptables -t nat -A OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}DNS_PORT
+              
+              # Проверяем, что правило еще не существует перед добавлением
+              if ! iptables -t nat -C OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT 2>/dev/null; then
+                iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT
+                echo "✅ TCP правило добавлено для UID ${'$'}UID"
+              else
+                echo "ℹ️ TCP правило уже существует для UID ${'$'}UID"
+              fi
+              
+              if ! iptables -t nat -C OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}DNS_PORT 2>/dev/null; then
+                iptables -t nat -A OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}DNS_PORT
+                echo "✅ DNS правило добавлено для UID ${'$'}UID"
+              else
+                echo "ℹ️ DNS правило уже существует для UID ${'$'}UID"
+              fi
             done
 
             echo "Правила применены для UID: ${'$'}UIDS"

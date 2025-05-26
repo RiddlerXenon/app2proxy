@@ -86,22 +86,28 @@ class AppListFragment : Fragment() {
         val selectedUids = adapter.getSelectedUids()
         val prevSelectedUids = getPrefs().getStringSet("selected_uids", emptySet()) ?: emptySet()
 
+        // Сначала очищаем ВСЕ старые правила для всех ранее выбранных приложений
+        if (prevSelectedUids.isNotEmpty()) {
+            val prevUidsString = prevSelectedUids.joinToString(" ")
+            IptablesService.clearAllRulesForUids(requireContext(), prevUidsString)
+        }
+
+        // Затем применяем правила только для текущих выбранных приложений
         if (selectedUids.isNotEmpty()) {
             val uidsString = selectedUids.joinToString(" ")
-
-            // Находим UID для удаления (которые были выбраны ранее, но больше не выбраны)
-            val uidsToRemove = prevSelectedUids - selectedUids
-            if (uidsToRemove.isNotEmpty()) {
-                val uidsToRemoveString = uidsToRemove.joinToString(" ")
-                IptablesService.clearRules(requireContext(), uidsToRemoveString)
-            }
-            
-            // Применяем правила для текущих выбранных приложений
             IptablesService.applyRules(requireContext(), uidsString)
         }
         
         // Сохраняем текущее состояние
         saveSelectedUids(selectedUids)
+        
+        // Показываем уведомление пользователю
+        val message = when {
+            selectedUids.isEmpty() -> "Все правила удалены"
+            prevSelectedUids.isEmpty() -> "Правила применены для ${selectedUids.size} приложений"
+            else -> "Правила обновлены для ${selectedUids.size} приложений"
+        }
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 
     private fun saveSelectedUids(uids: Set<String>) {

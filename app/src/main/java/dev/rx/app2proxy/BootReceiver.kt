@@ -13,7 +13,7 @@ import java.io.File
 class BootReceiver : BroadcastReceiver() {
     
     companion object {
-        private const val TAG = "App2ProxyBootReceiver" // Изменено имя для лучшей отладки
+        private const val TAG = "App2ProxyBootReceiver"
     }
     
     override fun onReceive(context: Context, intent: Intent) {
@@ -33,8 +33,20 @@ class BootReceiver : BroadcastReceiver() {
             return
         }
         
+        // Игнорируем LOCKED_BOOT_COMPLETED для Android 15, работаем только с BOOT_COMPLETED
+        if (action == Intent.ACTION_LOCKED_BOOT_COMPLETED) {
+            Log.d(TAG, "⏭️ Пропускаем LOCKED_BOOT_COMPLETED, ждем BOOT_COMPLETED")
+            return
+        }
+        
         try {
-            // Немедленно сохраняем факт активации (чтобы диагностика это видела)
+            // Проверяем доступность SharedPreferences
+            if (!isUserUnlocked(context)) {
+                Log.w(TAG, "⚠️ Пользователь еще не разблокирован, откладываем обработку")
+                return
+            }
+            
+            // Немедленно сохраняем факт активации
             val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
             prefs.edit()
                 .putBoolean("boot_receiver_activated", true)
@@ -58,6 +70,20 @@ class BootReceiver : BroadcastReceiver() {
         } catch (e: Exception) {
             Log.e(TAG, "❌ Критическая ошибка в onReceive", e)
             writeToLogFile(context, "BOOT_RECEIVER_ERROR: ${e.message}")
+        }
+    }
+    
+    private fun isUserUnlocked(context: Context): Boolean {
+        return try {
+            // Попытка получить доступ к SharedPreferences
+            context.getSharedPreferences("test_prefs", Context.MODE_PRIVATE)
+            true
+        } catch (e: IllegalStateException) {
+            // Пользователь еще не разблокирован
+            false
+        } catch (e: Exception) {
+            Log.e(TAG, "Неожиданная ошибка проверки разблокировки", e)
+            false
         }
     }
     
@@ -520,6 +546,12 @@ class BootReceiver : BroadcastReceiver() {
     private fun writeToLogFile(context: Context, message: String) {
         try {
             val logFile = File(context.filesDir, "boot_receiver_log.txt")
+            
+            // Создаем директорию если не существует
+            if (!logFile.parentFile?.exists()!!) {
+                logFile.parentFile?.mkdirs()
+            }
+            
             val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", java.util.Locale.getDefault()).format(java.util.Date())
             
             java.io.FileWriter(logFile, true).use { writer ->

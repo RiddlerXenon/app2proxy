@@ -1,6 +1,7 @@
 package dev.rx.app2proxy
 
 import android.app.Application
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
@@ -19,34 +20,63 @@ class App2ProxyApplication : Application() {
         Log.d(TAG, "📱 Android версия: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
         
         try {
-            // Инициализация настроек приложения
-            initializeAppSettings()
-            
-            // Применение темы
-            applyTheme()
-            
-            // Инициализация Material You
-            initializeMaterialYou()
-            
-            // Специальная инициализация для разных версий Android
-            when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM -> {
-                    initializeAndroid15Compatibility()
-                    Log.d(TAG, "✅ Инициализация Android 15 завершена")
+            // Проверяем доступность зашифрованного хранилища
+            if (isDeviceProtectedStorageAvailable()) {
+                // Инициализация настроек приложения
+                initializeAppSettings()
+                
+                // Применение темы
+                applyTheme()
+                
+                // Инициализация Material You
+                initializeMaterialYou()
+                
+                // Специальная инициализация для разных версий Android
+                when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM -> {
+                        initializeAndroid15Compatibility()
+                        Log.d(TAG, "✅ Инициализация Android 15 завершена")
+                    }
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
+                        initializeAndroid14Compatibility()
+                        Log.d(TAG, "✅ Инициализация Android 14 завершена")
+                    }
+                    else -> {
+                        Log.d(TAG, "✅ Стандартная инициализация завершена")
+                    }
                 }
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
-                    initializeAndroid14Compatibility()
-                    Log.d(TAG, "✅ Инициализация Android 14 завершена")
-                }
-                else -> {
-                    Log.d(TAG, "✅ Стандартная инициализация завершена")
-                }
+                
+                Log.d(TAG, "✅ App2Proxy Application успешно инициализировано")
+            } else {
+                Log.w(TAG, "⚠️ Пользователь еще не разблокирован, отложенная инициализация")
+                // Применяем безопасные настройки по умолчанию
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                Log.d(TAG, "✅ Базовая инициализация завершена")
             }
-            
-            Log.d(TAG, "✅ App2Proxy Application успешно инициализировано")
             
         } catch (e: Exception) {
             Log.e(TAG, "❌ Критическая ошибка инициализации приложения", e)
+            // Fallback инициализация
+            try {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                Log.d(TAG, "✅ Fallback инициализация завершена")
+            } catch (fallbackError: Exception) {
+                Log.e(TAG, "❌ Fallback инициализация также провалилась", fallbackError)
+            }
+        }
+    }
+    
+    private fun isDeviceProtectedStorageAvailable(): Boolean {
+        return try {
+            // Попытка получить доступ к SharedPreferences
+            getSharedPreferences("test_prefs", MODE_PRIVATE)
+            true
+        } catch (e: IllegalStateException) {
+            // Пользователь еще не разблокирован
+            false
+        } catch (e: Exception) {
+            Log.e(TAG, "Неожиданная ошибка проверки хранилища", e)
+            false
         }
     }
     

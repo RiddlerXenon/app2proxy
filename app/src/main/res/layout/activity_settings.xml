@@ -60,8 +60,8 @@
                             android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="16dp" />
 
-                        <!-- Используем SwitchMaterial вместо MaterialSwitch для совместимости -->
-                        <com.google.android.material.switchmaterial.SwitchMaterial
+                        <!-- Заменили SwitchMaterial на MaterialSwitch (Material 3) -->
+                        <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchAutostart"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -185,8 +185,8 @@
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginBottom="16dp" />
 
-                        <!-- SwitchMaterial переключатели -->
-                        <com.google.android.material.switchmaterial.SwitchMaterial
+                        <!-- Заменили SwitchMaterial на MaterialSwitch (Material 3) -->
+                        <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchTheme"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -194,7 +194,7 @@
                             android:textAppearance="?attr/textAppearanceBodyLarge"
                             android:textColor="?attr/colorOnSurface" />
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial
+                        <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchMaterialYou"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -203,8 +203,8 @@
                             android:textColor="?attr/colorOnSurface"
                             android:layout_marginBottom="8dp" />
 
-                        <!-- SwitchMaterial для AMOLED темы -->
-                        <com.google.android.material.switchmaterial.SwitchMaterial
+                        <!-- Заменили SwitchMaterial на MaterialSwitch (Material 3) для AMOLED темы -->
+                        <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchAmoledTheme"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

@@ -120,27 +120,11 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupSwitches() {
-        // Проверяем поддержку Material You для динамических цветов
-        val supportsMaterialYou = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-        
-        if (supportsMaterialYou) {
-            Log.d(TAG, "✅ Material You поддерживается (Android 12+)")
-        } else {
-            Log.d(TAG, "⚠️ Material You не поддерживается (Android < 12)")
-        }
-        
         // Автозапуск
         binding.switchAutostart.isChecked = prefs.getBoolean("autostart", false)
         binding.switchAutostart.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("autostart", isChecked).apply()
             Log.d(TAG, "Автозапуск ${if (isChecked) "включен" else "отключен"}")
-            
-            val message = if (isChecked) {
-                "Автозапуск включен. Правила будут восстановлены после перезагрузки."
-            } else {
-                "Автозапуск отключен."
-            }
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
 
         // Темная тема
@@ -168,10 +152,10 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // Material You
-        binding.switchMaterialYou.isEnabled = supportsMaterialYou
+        binding.switchMaterialYou.isEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         binding.switchMaterialYou.isChecked = prefs.getBoolean("material_you", false)
         binding.switchMaterialYou.setOnCheckedChangeListener { _, isChecked ->
-            if (supportsMaterialYou) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 prefs.edit().putBoolean("material_you", isChecked).apply()
                 
                 Log.d(TAG, "Material You ${if (isChecked) "включен" else "отключен"}")
@@ -181,10 +165,10 @@ class SettingsActivity : AppCompatActivity() {
                     if (prefs.getBoolean("amoled_theme", false)) {
                         "Material You включен для AMOLED темы.\nДинамические цвета применятся к элементам интерфейса,\nфон и AppBar останутся черными."
                     } else {
-                        "Material You включен. Цвета будут извлечены из ваших обоев."
+                        "Material You включен"
                     }
                 } else {
-                    "Material You отключен. Используются стандартные цвета."
+                    "Material You отключен"
                 }
                 
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
@@ -196,7 +180,7 @@ class SettingsActivity : AppCompatActivity() {
                 finish()
             } else {
                 binding.switchMaterialYou.isChecked = false
-                Toast.makeText(this, "Material You недоступен на Android версии ниже 12", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Material You недоступен на этой версии Android", Toast.LENGTH_SHORT).show()
                 Log.w(TAG, "Попытка включить Material You на неподдерживаемой версии Android")
             }
         }
@@ -205,36 +189,37 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchAmoledTheme.isChecked = prefs.getBoolean("amoled_theme", false)
         binding.switchAmoledTheme.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked && !binding.switchTheme.isChecked) {
-                // Если пытаются включить AMOLED без темной темы
+                // Если пытаемся включить AMOLED, но темная тема отключена
                 binding.switchAmoledTheme.isChecked = false
-                Toast.makeText(this, "AMOLED тема доступна только в темном режиме", Toast.LENGTH_SHORT).show()
-                Log.w(TAG, "Попытка включить AMOLED тему без темного режима")
+                Toast.makeText(this, "Сначала включите темную тему", Toast.LENGTH_SHORT).show()
+                Log.w(TAG, "Попытка включить AMOLED тему без темной темы")
                 return@setOnCheckedChangeListener
             }
             
             prefs.edit().putBoolean("amoled_theme", isChecked).apply()
+            Log.d(TAG, "AMOLED тема ${if (isChecked) "включена" else "отключена"}")
             
+            // Показываем уведомление пользователю
             val message = if (isChecked) {
                 if (prefs.getBoolean("material_you", false)) {
-                    "AMOLED тема включена с поддержкой Material You.\nДинамические цвета будут применены к элементам интерфейса,\nфон и AppBar станут черными для экономии батареи."
+                    "AMOLED тема включена.\nДинамические цвета Material You применятся к элементам интерфейса,\nфон и AppBar будут черными."
                 } else {
-                    "AMOLED тема включена.\nФон и AppBar станут абсолютно черными для экономии батареи OLED экранов."
+                    "AMOLED тема включена"
                 }
             } else {
-                "AMOLED тема отключена. Используется стандартная темная тема."
+                "AMOLED тема отключена"
             }
             
-            Log.d(TAG, message)
             Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             
-            // Перезапускаем приложение аналогично Material You
+            // Перезапускаем приложение с полной очисткой стека
             val intent = Intent(this, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
         }
-
-        // Обновляем состояние AMOLED переключателя
+        
+        // Обновляем состояние переключателя AMOLED при создании
         updateAmoledSwitchState()
     }
 

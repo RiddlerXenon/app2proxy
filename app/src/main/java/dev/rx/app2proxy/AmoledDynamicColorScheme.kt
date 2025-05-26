@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.DynamicColors
 
 object AmoledDynamicColorScheme {
@@ -68,6 +69,27 @@ object AmoledDynamicColorScheme {
             
         } catch (e: Exception) {
             Log.e(TAG, "❌ Ошибка применения AMOLED стиля к Toolbar", e)
+        }
+    }
+    
+    /**
+     * Применяет AMOLED стиль к MaterialCardView для списка приложений
+     */
+    fun applyAmoledCardStyle(cardView: MaterialCardView, context: Context) {
+        try {
+            Log.d(TAG, "🎨 Применяем AMOLED стиль к карточке")
+            
+            // Устанавливаем темный фон для карточки
+            cardView.setCardBackgroundColor(Color.parseColor("#1C1C1C"))
+            
+            // Устанавливаем минимальную высоту границы для лучшего вида
+            cardView.cardElevation = 2f
+            cardView.radius = 12f
+            
+            Log.d(TAG, "✅ AMOLED стиль применен к карточке")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка применения AMOLED стиля к карточке", e)
         }
     }
 }

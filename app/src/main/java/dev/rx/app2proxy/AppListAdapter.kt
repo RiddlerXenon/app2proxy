@@ -47,6 +47,7 @@ class AppListAdapter(
                 } else {
                     selected.remove(app.uid.toString())
                 }
+                // Уведомляем об изменении без пересортировки
                 onSelectedChanged(selected)
             }
             
@@ -62,26 +63,13 @@ class AppListAdapter(
 
     private fun applyAmoledStyleIfNeeded(holder: AppViewHolder) {
         try {
-            val context = holder.itemView.context
-            val prefs = context.getSharedPreferences("proxy_prefs", android.content.Context.MODE_PRIVATE)
-            val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
-            val isDarkTheme = prefs.getBoolean("dark_theme", true)
+            val context = holder.binding.root.context
+            val sharedPrefs = context.getSharedPreferences("proxy_prefs", android.content.Context.MODE_PRIVATE)
+            val useAmoledTheme = sharedPrefs.getBoolean("amoled_theme", false)
+            val isDarkTheme = sharedPrefs.getBoolean("dark_theme", true)
             
             if (useAmoledTheme && isDarkTheme) {
-                // Проверяем, что root действительно MaterialCardView
-                val cardView = holder.binding.root
-                if (cardView is MaterialCardView) {
-                    // Получаем цвет для карточки из ресурсов
-                    val cardColor = androidx.core.content.ContextCompat.getColor(
-                        context, 
-                        R.color.amoled_card_surface
-                    )
-                    cardView.setCardBackgroundColor(cardColor)
-                    
-                    // Убираем тень и elevation для AMOLED
-                    cardView.cardElevation = 0f
-                    cardView.strokeWidth = 0
-                }
+                AmoledDynamicColorScheme.applyAmoledCardStyle(holder.binding.root as MaterialCardView, context)
             }
         } catch (e: Exception) {
             // Игнорируем ошибки применения стилей
@@ -119,13 +107,26 @@ class AppListAdapter(
         selected.clear()
         selected.addAll(selectedUids)
         notifyDataSetChanged()
+        onSelectedChanged(selected)
     }
 
     // Метод для обновления только состояния выбранных элементов
     fun updateSelectedStates(selectedUids: Set<String>) {
+        val oldSelected = selected.toSet()
         selected.clear()
         selected.addAll(selectedUids)
-        notifyDataSetChanged()
+        
+        // Обновляем только те элементы, состояние которых изменилось
+        for (i in apps.indices) {
+            val uid = apps[i].uid.toString()
+            val wasSelected = oldSelected.contains(uid)
+            val isSelected = selectedUids.contains(uid)
+            
+            if (wasSelected != isSelected) {
+                notifyItemChanged(i)
+            }
+        }
+        
         onSelectedChanged(selected)
     }
 

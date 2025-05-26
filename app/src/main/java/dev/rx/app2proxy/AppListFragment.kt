@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
 import dev.rx.app2proxy.databinding.FragmentAppListBinding
 
 class AppListFragment : Fragment() {
@@ -122,8 +123,8 @@ class AppListFragment : Fragment() {
         if (!::adapter.isInitialized) {
             adapter = AppListAdapter(sortedApps, prevSelected, requireContext().packageManager) { updatedUids ->
                 saveSelectedUids(updatedUids)
-                // При изменении выбора пересортировываем список
-                resortAppList(updatedUids)
+                // УБИРАЕМ автоматическую пересортировку при каждом изменении выбора
+                // resortAppList(updatedUids) - закомментировано для предотвращения скачков
             }
             binding.recyclerView.adapter = adapter
         } else {
@@ -153,12 +154,28 @@ class AppListFragment : Fragment() {
     }
 
     // Метод для пересортировки списка при изменении выбора
+    // Теперь используется только для операций selectAll/deselectAll и refreshSelectedStates
     private fun resortAppList(selectedUids: Set<String>) {
         if (!::adapter.isInitialized) return
+
+        // Сохраняем текущую позицию скролла
+        val layoutManager = binding.recyclerView.layoutManager
+        val scrollPosition = if (layoutManager is androidx.recyclerview.widget.LinearLayoutManager) {
+            layoutManager.findFirstVisibleItemPosition()
+        } else {
+            0
+        }
 
         val currentApps = adapter.getCurrentApps()
         val sortedApps = sortAppsBySelection(currentApps, selectedUids)
         adapter.updateDataWithSort(sortedApps, selectedUids)
+
+        // Восстанавливаем позицию скролла
+        binding.recyclerView.post {
+            if (scrollPosition != RecyclerView.NO_POSITION) {
+                binding.recyclerView.scrollToPosition(minOf(scrollPosition, sortedApps.size - 1))
+            }
+        }
     }
 
     private fun getPrefs() = requireContext().getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)

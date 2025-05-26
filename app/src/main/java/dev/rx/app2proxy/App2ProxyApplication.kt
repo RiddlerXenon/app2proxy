@@ -60,10 +60,10 @@ class App2ProxyApplication : Application() {
                 if (isDarkTheme) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
             )
             
-            Log.d(TAG, "✅ Тема применена: ${if (isDarkTheme) "Темная" else "Светлая"}")
+            Log.d(TAG, "✅ Глобальная тема применена: ${if (isDarkTheme) "Темная" else "Светлая"}")
             
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка применения темы", e)
+            Log.e(TAG, "❌ Ошибка применения глобальной темы", e)
             // Fallback к системной теме
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         }
@@ -85,11 +85,13 @@ class App2ProxyApplication : Application() {
                     .putLong("first_launch_time", System.currentTimeMillis())
                     .putBoolean("material_you", Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                     .apply()
-                Log.d(TAG, "Выполнена первичная инициализация настроек")
+                Log.d(TAG, "✅ Выполнена первичная инициализация настроек")
+            } else {
+                Log.d(TAG, "ℹ️ Приложение уже инициализировано ранее")
             }
             
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка инициализации настроек", e)
+            Log.e(TAG, "❌ Ошибка инициализации настроек", e)
         }
     }
     
@@ -99,17 +101,22 @@ class App2ProxyApplication : Application() {
             val useMaterialYou = prefs.getBoolean("material_you", false)
             
             if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                // Применяем динамические цвета ко всем активностям приложения
                 DynamicColors.applyToActivitiesIfAvailable(this)
-                Log.d(TAG, "Material You включен")
+                Log.d(TAG, "✅ Material You включен глобально для всех активностей")
+            } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                Log.d(TAG, "ℹ️ Material You недоступен на Android ${Build.VERSION.RELEASE}")
+            } else {
+                Log.d(TAG, "ℹ️ Material You отключен пользователем")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка инициализации Material You", e)
+            Log.e(TAG, "❌ Ошибка инициализации Material You", e)
         }
     }
     
     private fun initializeAndroid15Compatibility() {
         try {
-            Log.d(TAG, "Настройка совместимости с Android 15")
+            Log.d(TAG, "🔥 Выполняем настройку для Android 15")
             
             // Специальные настройки для Android 15
             val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
@@ -120,13 +127,13 @@ class App2ProxyApplication : Application() {
                 .apply()
                 
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка настройки Android 15", e)
+            Log.e(TAG, "❌ Ошибка настройки Android 15", e)
         }
     }
     
     private fun initializeAndroid14Compatibility() {
         try {
-            Log.d(TAG, "Настройка совместимости с Android 14")
+            Log.d(TAG, "🔄 Настройка совместимости с Android 14")
             
             val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
             prefs.edit()
@@ -135,7 +142,7 @@ class App2ProxyApplication : Application() {
                 .apply()
                 
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка настройки Android 14", e)
+            Log.e(TAG, "❌ Ошибка настройки Android 14", e)
         }
     }
 }

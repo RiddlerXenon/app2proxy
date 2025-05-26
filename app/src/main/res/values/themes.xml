@@ -46,11 +46,9 @@
         <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
         <item name="android:navigationBarColor" tools:targetApi="l">@android:color/transparent</item>
         
-        <!-- Цвет верхней панели чтобы отличался от фона -->
-        <item name="colorSurfaceContainer">#F5F5F5</item>
-        
         <!-- Улучшенные Material 3 стили -->
         <item name="materialButtonStyle">@style/Widget.App.Button</item>
         <item name="materialCardViewStyle">@style/Widget.App.CardView</item>
     </style>
+
 </resources>

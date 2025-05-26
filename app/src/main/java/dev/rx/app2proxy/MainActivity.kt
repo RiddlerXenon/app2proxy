@@ -112,32 +112,33 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
             val isDarkTheme = prefs.getBoolean("dark_theme", true)
             
-            Log.d(TAG, "🎨 Применяем тему: MaterialYou=$useMaterialYou, AMOLED=$useAmoledTheme, Dark=$isDarkTheme")
+            Log.d(TAG, "🎨 Применяем тему в MainActivity: MaterialYou=$useMaterialYou, AMOLED=$useAmoledTheme, Dark=$isDarkTheme")
             
-            // Material You только для Android 12+
-            if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                try {
-                    com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this)
-                    Log.d(TAG, "✅ Material You применен")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Ошибка применения Material You", e)
-                }
-            }
-
-            // Выбираем тему в зависимости от настроек
+            // Сначала выбираем базовую тему
             when {
                 useAmoledTheme && isDarkTheme -> {
                     setTheme(R.style.Theme_App2Proxy_Amoled)
-                    Log.d(TAG, "✅ AMOLED тема применена")
+                    Log.d(TAG, "✅ AMOLED тема применена в MainActivity")
                 }
                 else -> {
                     setTheme(R.style.Theme_App2Proxy)
-                    Log.d(TAG, "✅ Стандартная тема применена")
+                    Log.d(TAG, "✅ Стандартная тема применена в MainActivity")
+                }
+            }
+            
+            // Затем применяем Material You поверх базовой темы только для Android 12+
+            if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                try {
+                    // Применяем динамические цвета
+                    com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this)
+                    Log.d(TAG, "✅ Material You применен в MainActivity")
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Ошибка применения Material You в MainActivity", e)
                 }
             }
             
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка применения темы", e)
+            Log.e(TAG, "❌ Общая ошибка применения темы в MainActivity", e)
             setTheme(R.style.Theme_App2Proxy) // Fallback тема
         }
     }

@@ -521,42 +521,10 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         return try {
             menuInflater.inflate(R.menu.menu_main, menu)
             menu.findItem(R.id.action_show_system)?.isChecked = showSystemApps
-            
-            // КРИТИЧЕСКИ ВАЖНО: Применяем AMOLED стиль ПОСЛЕ создания меню
-            applyAmoledToMenuAfterCreation()
-            
             true
         } catch (e: Exception) {
             Log.e(TAG, "Ошибка создания меню", e)
             false
-        }
-    }
-
-    private fun applyAmoledToMenuAfterCreation() {
-        val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
-        val useMaterialYou = prefs.getBoolean("material_you", false)
-        val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
-        val isDarkTheme = prefs.getBoolean("dark_theme", true)
-        
-        if (useAmoledTheme && isDarkTheme) {
-            // Используем post чтобы выполнить после полной инициализации меню
-            binding.toolbar.post {
-                Log.d(TAG, "🎨 Применяем AMOLED к меню после создания")
-                
-                // Повторно применяем стили toolbar
-                AmoledDynamicColorScheme.applyAmoledToolbarStyle(binding.toolbar, this)
-                
-                // Применяем стили к элементам меню
-                AmoledDynamicColorScheme.applyAmoledToMenuItems(binding.toolbar, this)
-                
-                if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    // Дополнительная задержка для Material You
-                    binding.toolbar.postDelayed({
-                        AmoledDynamicColorScheme.applyAmoledToolbarStyle(binding.toolbar, this)
-                        AmoledDynamicColorScheme.applyAmoledToMenuItems(binding.toolbar, this)
-                    }, 500)
-                }
-            }
         }
     }
 
@@ -614,21 +582,8 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
 
     override fun onResume() {
         super.onResume()
-        
+
         applyAmoledThemeIfNeeded()
-        
-        val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
-        val useMaterialYou = prefs.getBoolean("material_you", false)
-        val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
-        val isDarkTheme = prefs.getBoolean("dark_theme", true)
-        
-        if (useMaterialYou && useAmoledTheme && isDarkTheme && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Повторно применяем стили с задержкой
-            binding.toolbar.postDelayed({
-                AmoledDynamicColorScheme.applyAmoledToolbarStyle(binding.toolbar, this)
-                AmoledDynamicColorScheme.applyAmoledToMenuItems(binding.toolbar, this)
-            }, 100)
-        }    
     }
 
     private fun checkRulesConsistency() {

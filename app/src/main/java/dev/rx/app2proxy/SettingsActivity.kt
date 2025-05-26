@@ -36,16 +36,13 @@ class SettingsActivity : AppCompatActivity() {
         setupEdgeToEdge()
 
         // Настройка toolbar
-        val toolbar: MaterialToolbar = binding.toolbar
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            title = getString(R.string.action_settings)
-            setDisplayHomeAsUpEnabled(true)
-            setDisplayShowTitleEnabled(true)
-        }
+        setupToolbar()
 
         // Настройка переключателей
         setupSwitches()
+        
+        // Применяем AMOLED фон после создания интерфейса
+        applyAmoledThemeIfNeeded()
     }
 
     private fun applySelectedTheme() {
@@ -54,16 +51,62 @@ class SettingsActivity : AppCompatActivity() {
         val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
         val isDarkTheme = prefs.getBoolean("dark_theme", true)
         
-        if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this)
-        }
-
         Log.d(TAG, "🎨 Применяем тему в Settings: MaterialYou=$useMaterialYou, AMOLED=$useAmoledTheme, Dark=$isDarkTheme")
         
         // Сначала выбираем базовую тему
         when {
             useAmoledTheme && isDarkTheme -> setTheme(R.style.Theme_App2Proxy_Amoled)
             else -> setTheme(R.style.Theme_App2Proxy)
+        }
+        
+        // Применяем динамические цвета Material You только если включен и поддерживается
+        if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (useAmoledTheme && isDarkTheme) {
+                // Для AMOLED темы с Material You применяем специальную логику
+                Log.d(TAG, "🎨 Применяем AMOLED + Material You")
+                AmoledDynamicColorScheme.applyAmoledDynamicColors(this)
+            } else {
+                // Для обычных тем применяем Material You стандартно
+                Log.d(TAG, "🎨 Применяем стандартный Material You")
+                DynamicColors.applyToActivityIfAvailable(this)
+            }
+        }
+    }
+    
+    private fun applyAmoledThemeIfNeeded() {
+        val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
+        val isDarkTheme = prefs.getBoolean("dark_theme", true)
+        
+        if (useAmoledTheme && isDarkTheme) {
+            // Применяем черный фон только к корневому контейнеру
+            AmoledDynamicColorScheme.applyAmoledBackgroundToView(binding.root)
+            
+            // Применяем AMOLED стиль к Toolbar
+            AmoledDynamicColorScheme.applyAmoledToolbarStyle(binding.toolbar, this)
+            
+            Log.d(TAG, "✅ AMOLED стиль применен к Settings (включая Toolbar)")
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        
+        // Повторно применяем AMOLED стиль если нужно
+        applyAmoledThemeIfNeeded()
+    }
+
+    private fun setupToolbar() {
+        try {
+            val toolbar: MaterialToolbar = binding.toolbar
+            setSupportActionBar(toolbar)
+            supportActionBar?.apply {
+                title = getString(R.string.action_settings)
+                setDisplayHomeAsUpEnabled(true)
+                setDisplayShowTitleEnabled(true)
+            }
+            Log.d(TAG, "✅ Toolbar настроен")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка настройки toolbar", e)
         }
     }
 
@@ -109,9 +152,17 @@ class SettingsActivity : AppCompatActivity() {
                 Log.d(TAG, "Material You ${if (isChecked) "включен" else "отключен"}")
 
                 // Показываем уведомление пользователю
-                Toast.makeText(this, 
-                    if (isChecked) "Material You включен" else "Material You отключен", 
-                    Toast.LENGTH_SHORT).show()
+                val message = if (isChecked) {
+                    if (prefs.getBoolean("amoled_theme", false)) {
+                        "Material You включен для AMOLED темы.\nДинамические цвета применятся к элементам интерфейса,\nфон и AppBar останутся черными."
+                    } else {
+                        "Material You включен"
+                    }
+                } else {
+                    "Material You отключен"
+                }
+                
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
 
                 // Перезапускаем приложение с полной очисткой стека
                 val intent = Intent(this, MainActivity::class.java)
@@ -137,7 +188,19 @@ class SettingsActivity : AppCompatActivity() {
             }
             
             prefs.edit().putBoolean("amoled_theme", isChecked).apply()
-            Log.d(TAG, "AMOLED тема ${if (isChecked) "включена" else "отключена"}")
+            
+            val message = if (isChecked) {
+                if (prefs.getBoolean("material_you", false)) {
+                    "AMOLED тема включена с поддержкой Material You.\nДинамические цвета будут применены к элементам интерфейса,\nфон и AppBar останутся черными для экономии батареи."
+                } else {
+                    "AMOLED тема включена.\nФон и AppBar станут черными для экономии батареи."
+                }
+            } else {
+                "AMOLED тема отключена"
+            }
+            
+            Log.d(TAG, message)
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             
             // Перезапускаем приложение аналогично Material You
             val intent = Intent(this, MainActivity::class.java)
@@ -207,36 +270,28 @@ class SettingsActivity : AppCompatActivity() {
                         android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
                 }
             } else {
-                // Для более старых версий используем WindowInsetsControllerCompat
-                val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-                windowInsetsController.isAppearanceLightStatusBars = !isDarkTheme
-                windowInsetsController.isAppearanceLightNavigationBars = !isDarkTheme
+                // Для более старых версий используем системные флаги
+                val flags = if (isDarkTheme) {
+                    0 // Светлые иконки на темном фоне
+                } else {
+                    // Темные иконки на светлом фоне
+                    @Suppress("DEPRECATION")
+                    android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or 
+                    @Suppress("DEPRECATION")
+                    android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                }
+                @Suppress("DEPRECATION")
+                window.decorView.systemUiVisibility = flags
             }
 
-            // Устанавливаем обработчик для системных отступов
-            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-                // Получаем отступы для системных баров
-                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                
-                // AppBarLayout автоматически обработает верхний отступ благодаря fitsSystemWindows="true"
-                // Нам нужно только обработать боковые отступы, нижний отступ тоже применяем
-                binding.root.setPadding(
-                    systemBars.left,
-                    0, // Верхний отступ обрабатывается AppBarLayout
-                    systemBars.right,
-                    systemBars.bottom // Нижний отступ для навигационной панели
-                )
-                
-                insets
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка настройки edge-to-edge режима", e)
-            // В случае ошибки используем fallback подход
+            // Применяем отступы для системных UI
             ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                 view.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom)
                 insets
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Ошибка настройки edge-to-edge", e)
         }
     }
 

@@ -23,6 +23,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dev.rx.app2proxy.databinding.ActivityMainBinding
 import java.io.File
+import com.google.android.material.color.DynamicColors
 
 class MainActivity : AppCompatActivity(), RulesUpdateListener {
     private lateinit var binding: ActivityMainBinding
@@ -105,6 +106,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         }
     }
     
+
     private fun applyThemeForAndroidVersion() {
         try {
             val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
@@ -114,23 +116,36 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             
             Log.d(TAG, "🎨 Применяем тему в MainActivity: MaterialYou=$useMaterialYou, AMOLED=$useAmoledTheme, Dark=$isDarkTheme")
 
-            // Material You только для Android 12+
-            if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                try {
-                    com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this)
-                    Log.d(TAG, "✅ Material You применен")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Ошибка применения Material You", e)
-                }
-            }
-
             // Выбираем тему в зависимости от настроек
-            
-            // Сначала выбираем базовую тему
             when {
                 useAmoledTheme && isDarkTheme -> {
                     setTheme(R.style.Theme_App2Proxy_Amoled)
                     Log.d(TAG, "✅ AMOLED тема применена в MainActivity")
+                }
+                isDarkTheme -> {
+                    setTheme(R.style.Theme_App2Proxy)
+                    Log.d(TAG, "✅ Темная тема применена в MainActivity")
+                }
+                else -> {
+                    setTheme(R.style.Theme_App2Proxy)
+                    Log.d(TAG, "✅ Светлая тема применена в MainActivity")
+                }
+            }
+
+            // Material You только для Android 12+
+            if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                try {
+                    if (useAmoledTheme && isDarkTheme) {
+                        // Для AMOLED темы с Material You применяем специальную логику
+                        Log.d(TAG, "🎨 Применяем AMOLED + Material You в MainActivity")
+                        AmoledDynamicColorScheme.applyAmoledDynamicColors(this)
+                    } else {
+                        // Для обычных тем применяем стандартный Material You
+                        Log.d(TAG, "🎨 Применяем стандартный Material You в MainActivity")
+                        DynamicColors.applyToActivityIfAvailable(this)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Ошибка применения Material You", e)
                 }
             }
             
@@ -140,6 +155,28 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         }
     }
     
+    private fun applyAmoledThemeIfNeeded() {
+        val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
+        val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
+        val isDarkTheme = prefs.getBoolean("dark_theme", true)
+        
+        if (useAmoledTheme && isDarkTheme) {
+            // Применяем черный фон только к корневому контейнеру
+            // Дочерние элементы сохранят динамические цвета
+            AmoledDynamicColorScheme.applyAmoledBackgroundToView(binding.root)
+
+            // Применяем AMOLED стиль к Toolbar
+            AmoledDynamicColorScheme.applyAmoledToolbarStyle(binding.toolbar, this)
+            
+            // Также применяем черный фон к TabLayout для единообразия
+            binding.bottomNavigation.setBackgroundColor(android.graphics.Color.BLACK)
+
+            // Также применяем AMOLED фон к AppBarLayout
+            binding.appBarLayout.setBackgroundColor(android.graphics.Color.BLACK)
+            Log.d(TAG, "✅ AMOLED фон применен к корневому контейнеру MainActivity")
+        }
+    }
+                
     private fun setupToolbar() {
         try {
             val toolbar: MaterialToolbar = binding.toolbar
@@ -545,16 +582,8 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
 
     override fun onResume() {
         super.onResume()
-        
-        try {
-            // Дополнительная проверка правил при возврате в приложение
-            checkRulesConsistency()
-            
-            // Проверяем состояние компонентов для диагностики
-            checkComponentsStatus()
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка в onResume", e)
-        }
+
+        applyAmoledThemeIfNeeded()
     }
 
     private fun checkRulesConsistency() {

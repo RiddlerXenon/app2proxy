@@ -10,6 +10,22 @@
         <item name="rippleColor">?attr/colorOnSurfaceVariant</item>
     </style>
     
+    <!-- Специальный стиль для AMOLED Toolbar -->
+    <style name="Widget.App.Toolbar.Amoled" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@color/amoled_background</item>
+        <item name="titleTextColor">@color/amoled_on_background</item>
+        <item name="subtitleTextColor">@color/amoled_on_background</item>
+        <item name="android:theme">@style/ThemeOverlay.App.Toolbar.Amoled</item>
+    </style>
+    
+    <!-- Тема для элементов внутри AMOLED Toolbar -->
+    <style name="ThemeOverlay.App.Toolbar.Amoled" parent="ThemeOverlay.Material3.Toolbar.Surface">
+        <item name="colorOnSurface">@color/amoled_on_background</item>
+        <item name="colorOnSurfaceVariant">@color/amoled_on_surface_variant</item>
+        <item name="android:textColorPrimary">@color/amoled_on_background</item>
+        <item name="android:textColorSecondary">@color/amoled_on_surface_variant</item>
+    </style>
+    
     <!-- Обычная темная тема -->
     <style name="Theme.App2Proxy" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_dark_primary</item>
@@ -51,8 +67,9 @@
         <item name="materialCardViewStyle">@style/Widget.App.CardView</item>
     </style>
 
-    <!-- AMOLED тема с чисто черным фоном -->
+    <!-- AMOLED тема с чисто черным AppBar -->
     <style name="Theme.App2Proxy.Amoled" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Динамические цвета Material You будут применены автоматически, кроме фона -->
         <item name="colorPrimary">@color/md_theme_dark_primary</item>
         <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_dark_primaryContainer</item>
@@ -70,7 +87,7 @@
         <item name="colorOnError">@color/md_theme_dark_onError</item>
         <item name="colorOnErrorContainer">@color/md_theme_dark_onErrorContainer</item>
         
-        <!-- Чисто черный фон для AMOLED -->
+        <!-- КРИТИЧНО: Чисто черный фон для AMOLED -->
         <item name="android:colorBackground">@color/amoled_background</item>
         <item name="colorOnBackground">@color/amoled_on_background</item>
         <item name="colorSurface">@color/amoled_surface</item>
@@ -86,8 +103,15 @@
         <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
         <item name="android:navigationBarColor" tools:targetApi="l">@android:color/transparent</item>
         
-        <!-- Черный цвет для верхней панели -->
-        <item name="colorSurfaceContainer">@color/amoled_surface</item>
+        <!-- ВАЖНО: Черный цвет для всех поверхностей включая AppBar -->
+        <item name="colorSurfaceContainer">@color/amoled_background</item>
+        <item name="colorSurfaceContainerHigh">@color/amoled_background</item>
+        <item name="colorSurfaceContainerHighest">@color/amoled_background</item>
+        <item name="colorSurfaceContainerLow">@color/amoled_background</item>
+        <item name="colorSurfaceContainerLowest">@color/amoled_background</item>
+        
+        <!-- Специальный стиль для AMOLED Toolbar -->
+        <item name="toolbarStyle">@style/Widget.App.Toolbar.Amoled</item>
         
         <!-- Улучшенные Material 3 стили -->
         <item name="materialButtonStyle">@style/Widget.App.Button</item>

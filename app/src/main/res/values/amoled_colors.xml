@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AMOLED цвета - всегда черный фон, даже с Material You -->
+    <color name="amoled_background">#FF000000</color>
+    <color name="amoled_on_background">#FFFFFFFF</color>
+    <color name="amoled_surface">#FF000000</color>
+    <color name="amoled_on_surface">#FFFFFFFF</color>
+    <color name="amoled_surface_variant">#FF1A1A1A</color>
+    <color name="amoled_on_surface_variant">#FFCAC4D0</color>
+    <color name="amoled_outline">#FF938F99</color>
+    <color name="amoled_error_container">#FF1A0A0A</color>
+</resources>

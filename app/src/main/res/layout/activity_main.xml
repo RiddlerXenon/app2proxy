@@ -22,7 +22,63 @@
             android:background="?attr/colorSurface"
             app:titleCentered="true"
             app:titleTextColor="?attr/colorOnSurface"
-            style="@style/Widget.Material3.Toolbar" />
+            style="@style/Widget.Material3.Toolbar">
+
+            <!-- Добавляем кнопки прямо в toolbar -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginEnd="8dp">
+
+                <!-- Кнопка показа системных приложений -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnToggleSystemApps"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="12dp"
+                    android:scaleType="fitCenter"
+                    app:icon="@drawable/ic_visibility_24"
+                    app:iconSize="24dp"
+                    app:iconTint="?attr/colorOnSurface"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:contentDescription="Показать/скрыть системные приложения" />
+
+                <!-- Кнопка настроек -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSettings"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="12dp"
+                    android:scaleType="fitCenter"
+                    app:icon="@drawable/ic_settings_24"
+                    app:iconSize="24dp"
+                    app:iconTint="?attr/colorOnSurface"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:contentDescription="Настройки" />
+
+            </LinearLayout>
+
+        </com.google.android.material.appbar.MaterialToolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 

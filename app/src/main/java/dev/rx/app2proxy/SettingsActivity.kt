@@ -84,7 +84,10 @@ class SettingsActivity : AppCompatActivity() {
             // Применяем AMOLED стиль к Toolbar
             AmoledDynamicColorScheme.applyAmoledToolbarStyle(binding.toolbar, this)
             
-            Log.d(TAG, "✅ AMOLED стиль применен к Settings (включая Toolbar)")
+            // Применяем AMOLED фон к AppBarLayout как в MainActivity
+            binding.appBarLayout.setBackgroundColor(android.graphics.Color.BLACK)
+            
+            Log.d(TAG, "✅ AMOLED стиль применен к Settings (включая Toolbar и AppBarLayout)")
         }
     }
 
@@ -191,7 +194,7 @@ class SettingsActivity : AppCompatActivity() {
             
             val message = if (isChecked) {
                 if (prefs.getBoolean("material_you", false)) {
-                    "AMOLED тема включена с поддержкой Material You.\nДинамические цвета будут применены к элементам интерфейса,\nфон и AppBar останутся черными для экономии батареи."
+                    "AMOLED тема включена с поддержкой Material You.\nДинамические цвета будут применены к элементам интерфейса,\nфон и AppBar станут черными."
                 } else {
                     "AMOLED тема включена.\nФон и AppBar станут черными для экономии батареи."
                 }
@@ -270,24 +273,25 @@ class SettingsActivity : AppCompatActivity() {
                         android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
                 }
             } else {
-                // Для более старых версий используем системные флаги
-                val flags = if (isDarkTheme) {
-                    0 // Светлые иконки на темном фоне
-                } else {
-                    // Темные иконки на светлом фоне
-                    @Suppress("DEPRECATION")
-                    android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or 
-                    @Suppress("DEPRECATION")
-                    android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-                }
-                @Suppress("DEPRECATION")
-                window.decorView.systemUiVisibility = flags
+                // Для более старых версий используем WindowInsetsControllerCompat
+                val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+                windowInsetsController.isAppearanceLightStatusBars = !isDarkTheme
+                windowInsetsController.isAppearanceLightNavigationBars = !isDarkTheme
             }
 
-            // Применяем отступы для системных UI
-            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            // Применяем отступы для системных UI аналогично MainActivity
+            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                view.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom)
+                
+                // AppBarLayout автоматически обработает верхний отступ благодаря fitsSystemWindows="true"
+                // Нам нужно только обработать боковые и нижний отступы
+                binding.root.setPadding(
+                    systemBars.left,
+                    0, // Верхний отступ обрабатывается AppBarLayout
+                    systemBars.right,
+                    systemBars.bottom
+                )
+                
                 insets
             }
         } catch (e: Exception) {

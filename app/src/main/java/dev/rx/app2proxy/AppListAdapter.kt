@@ -3,6 +3,7 @@ package dev.rx.app2proxy
 import android.content.pm.PackageManager
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import dev.rx.app2proxy.databinding.ItemAppBinding
@@ -16,6 +17,10 @@ class AppListAdapter(
     private val selected = selectedUids.toMutableSet()
     private var filteredApps: List<AppInfo> = apps
     private var currentFilter: String = ""
+    
+    companion object {
+        const val MAX_SELECTED_APPS = 25
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
         val binding = ItemAppBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -45,6 +50,16 @@ class AppListAdapter(
             checkBox.isChecked = selected.contains(app.uid.toString())
             checkBox.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
+                    if (selected.size >= MAX_SELECTED_APPS) {
+                        // Отменяем выбор и показываем сообщение
+                        checkBox.isChecked = false
+                        Toast.makeText(
+                            holder.binding.root.context,
+                            "Можно выбрать максимум $MAX_SELECTED_APPS приложений",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@setOnCheckedChangeListener
+                    }
                     selected.add(app.uid.toString())
                 } else {
                     selected.remove(app.uid.toString())
@@ -55,6 +70,14 @@ class AppListAdapter(
             
             // Добавляем клик по всей карточке
             root.setOnClickListener {
+                if (!checkBox.isChecked && selected.size >= MAX_SELECTED_APPS) {
+                    Toast.makeText(
+                        holder.binding.root.context,
+                        "Можно выбрать максимум $MAX_SELECTED_APPS приложений",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
+                }
                 checkBox.toggle()
             }
 
@@ -85,7 +108,9 @@ class AppListAdapter(
 
     fun selectAll() {
         selected.clear()
-        selected.addAll(filteredApps.map { it.uid.toString() })
+        val appsToSelect = filteredApps.take(MAX_SELECTED_APPS).map { it.uid.toString() }
+        selected.addAll(appsToSelect)
+        
         notifyDataSetChanged()
         onSelectedChanged(selected)
     }
@@ -99,7 +124,8 @@ class AppListAdapter(
     fun updateData(newApps: List<AppInfo>, selectedUids: Set<String>) {
         this.apps = newApps
         selected.clear()
-        selected.addAll(selectedUids)
+        // Ограничиваем количество выбранных приложений при загрузке
+        selected.addAll(selectedUids.take(MAX_SELECTED_APPS))
         applyFilter(currentFilter)
     }
 
@@ -107,7 +133,8 @@ class AppListAdapter(
     fun updateDataWithSort(newApps: List<AppInfo>, selectedUids: Set<String>) {
         this.apps = newApps
         selected.clear()
-        selected.addAll(selectedUids)
+        // Ограничиваем количество выбранных приложений при загрузке
+        selected.addAll(selectedUids.take(MAX_SELECTED_APPS))
         applyFilter(currentFilter)
         onSelectedChanged(selected)
     }
@@ -116,13 +143,14 @@ class AppListAdapter(
     fun updateSelectedStates(selectedUids: Set<String>) {
         val oldSelected = selected.toSet()
         selected.clear()
-        selected.addAll(selectedUids)
+        // Ограничиваем количество выбранных приложений
+        selected.addAll(selectedUids.take(MAX_SELECTED_APPS))
         
         // Обновляем только те элементы, состояние которых изменилось
         for (i in filteredApps.indices) {
             val uid = filteredApps[i].uid.toString()
             val wasSelected = oldSelected.contains(uid)
-            val isSelected = selectedUids.contains(uid)
+            val isSelected = selected.contains(uid)
             
             if (wasSelected != isSelected) {
                 notifyItemChanged(i)

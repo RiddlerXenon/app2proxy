@@ -52,8 +52,19 @@ class AppListFragment : Fragment() {
 
     fun selectAll() {
         if (::adapter.isInitialized) {
+            val totalApps = adapter.getFilteredCount()
             adapter.selectAll()
             saveSelectedUids(adapter.getSelectedUids())
+            
+            // Показываем сообщение если приложений больше лимита
+            if (totalApps > AppListAdapter.MAX_SELECTED_APPS) {
+                Toast.makeText(
+                    requireContext(),
+                    "Выбраны первые ${AppListAdapter.MAX_SELECTED_APPS} из $totalApps приложений",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            
             // Пересортировываем список после выбора всех
             resortAppList(adapter.getSelectedUids())
         }
@@ -111,6 +122,16 @@ class AppListFragment : Fragment() {
         val selectedUids = adapter.getSelectedUids()
         val prevSelectedUids = getPrefs().getStringSet("selected_uids", emptySet()) ?: emptySet()
 
+        // Проверяем лимит перед применением правил
+        if (selectedUids.size > AppListAdapter.MAX_SELECTED_APPS) {
+            Toast.makeText(
+                requireContext(),
+                "Слишком много выбранных приложений (${selectedUids.size}). Максимум: ${AppListAdapter.MAX_SELECTED_APPS}",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
         // Сначала очищаем ВСЕ старые правила для всех ранее выбранных приложений
         if (prevSelectedUids.isNotEmpty()) {
             val prevUidsString = prevSelectedUids.joinToString(" ")
@@ -136,7 +157,9 @@ class AppListFragment : Fragment() {
     }
 
     private fun saveSelectedUids(uids: Set<String>) {
-        getPrefs().edit().putStringSet("selected_uids", uids).apply()
+        // Ограничиваем количество сохраняемых UID
+        val limitedUids = uids.take(AppListAdapter.MAX_SELECTED_APPS).toSet()
+        getPrefs().edit().putStringSet("selected_uids", limitedUids).apply()
     }
 
     private fun updateAppList() {
@@ -147,7 +170,7 @@ class AppListFragment : Fragment() {
             Toast.makeText(requireContext(), "Не удалось загрузить список приложений", Toast.LENGTH_LONG).show()
             return
         }
-        
+
         // Сортируем приложения: сначала выбранные, потом остальные
         val sortedApps = sortAppsBySelection(apps, prevSelected)
         

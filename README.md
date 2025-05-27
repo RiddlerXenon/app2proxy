@@ -2,7 +2,7 @@
 
 # 🚀 App2Proxy
 
-<img src="https://img.shields.io/badge/Android-21%2B-green?logo=android&logoColor=white" alt="Android">
+<img src="https://img.shields.io/badge/Android-13%2B-33%25-green?logo=android&logoColor=white" alt="Android 13+">
 <img src="https://img.shields.io/badge/Kotlin-100%25-purple?logo=kotlin&logoColor=white" alt="Kotlin">
 <img src="https://img.shields.io/badge/License-GPL%20v3-blue?logo=gnu&logoColor=white" alt="License">
 
@@ -41,7 +41,7 @@
 ## 🚀 Быстрый старт
 
 ### Требования
-- **Android 5.0+** (API 21)
+- **Android 13+** (API 33)
 - **Root-доступ** для работы с iptables
 - **Xray/V2Ray** или другой прокси-сервер, работающий на портах:
   - `12345` - основной трафик

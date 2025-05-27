@@ -71,7 +71,7 @@ class AppListAdapter(
             val isDarkTheme = sharedPrefs.getBoolean("dark_theme", true)
             
             if (useAmoledTheme && isDarkTheme) {
-                AmoledDynamicColorScheme.applyAmoledCardStyle(holder.binding.root as MaterialCardView, context)
+                AmoledDynamicColorScheme.applyAmoledCardStyle(holder.binding.root as MaterialCardView)
             }
         } catch (e: Exception) {
             // Игнорируем ошибки применения стилей

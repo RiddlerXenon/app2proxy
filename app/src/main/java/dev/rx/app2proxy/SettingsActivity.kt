@@ -333,7 +333,7 @@ class SettingsActivity : AppCompatActivity() {
                 Log.d(TAG, "Старые порты для очистки: прокси=$oldProxyPort, DNS=$oldDnsPort")
                 
                 // Очищаем правила со старыми портами
-                IptablesService.clearRulesWithOldPorts(this, uidsString, oldProxyPort, oldDnsPort)
+                IptablesService.clearRulesWithOldPorts(uidsString, oldProxyPort, oldDnsPort)
                 
                 // Сохраняем новый порт
                 prefs.edit().putInt(portType, newPort).apply()

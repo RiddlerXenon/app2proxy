@@ -114,7 +114,7 @@ class AppListFragment : Fragment() {
         // Сначала очищаем ВСЕ старые правила для всех ранее выбранных приложений
         if (prevSelectedUids.isNotEmpty()) {
             val prevUidsString = prevSelectedUids.joinToString(" ")
-            IptablesService.clearAllRulesForUids(requireContext(), prevUidsString)
+            IptablesService.clearAllRulesForUids(prevUidsString)
         }
 
         // Затем применяем правила только для текущих выбранных приложений

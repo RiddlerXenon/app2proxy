@@ -75,7 +75,7 @@ object AmoledDynamicColorScheme {
     /**
      * Применяет AMOLED стиль к MaterialCardView для списка приложений
      */
-    fun applyAmoledCardStyle(cardView: MaterialCardView, context: Context) {
+    fun applyAmoledCardStyle(cardView: MaterialCardView) {
         try {
             Log.d(TAG, "🎨 Применяем AMOLED стиль к карточке")
             

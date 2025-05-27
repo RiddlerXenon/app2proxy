@@ -415,7 +415,8 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         if (isSearchExpanded) {
             collapseSearch()
         } else {
-            super.onBackPressed()
+            // super.onBackPressed() 'onBackPressed(): Unit' is deprecated. Deprecated in Java
+            onBackPressedDispatcher.onBackPressed()
         }
     }
 

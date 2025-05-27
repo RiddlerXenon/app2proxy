@@ -69,7 +69,7 @@ object IptablesService {
      * Универсальная очистка всех правил для указанных UID независимо от портов
      * Используется при изменении портов в настройках
      */
-    fun clearAllRulesForUids(context: Context, uids: String) {
+    fun clearAllRulesForUids(uids: String) {
         if (uids.trim().isEmpty()) {
             Log.w(TAG, "Пустой список UID для универсальной очистки правил")
             return
@@ -88,7 +88,7 @@ object IptablesService {
     /**
      * Очистка правил со старыми портами при изменении настроек
      */
-    fun clearRulesWithOldPorts(context: Context, uids: String, oldProxyPort: Int, oldDnsPort: Int) {
+    fun clearRulesWithOldPorts(uids: String, oldProxyPort: Int, oldDnsPort: Int) {
         if (uids.trim().isEmpty()) {
             Log.w(TAG, "Пустой список UID для очистки старых правил")
             return

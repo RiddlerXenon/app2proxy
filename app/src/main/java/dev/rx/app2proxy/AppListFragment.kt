@@ -50,35 +50,6 @@ class AppListFragment : Fragment() {
         }
     }
 
-    fun selectAll() {
-        if (::adapter.isInitialized) {
-            val totalApps = adapter.getFilteredCount()
-            adapter.selectAll()
-            saveSelectedUids(adapter.getSelectedUids())
-            
-            // Показываем сообщение если приложений больше лимита
-            if (totalApps > AppListAdapter.MAX_SELECTED_APPS) {
-                Toast.makeText(
-                    requireContext(),
-                    "Выбраны первые ${AppListAdapter.MAX_SELECTED_APPS} из $totalApps приложений",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-            
-            // Пересортировываем список после выбора всех
-            resortAppList(adapter.getSelectedUids())
-        }
-    }
-
-    fun deselectAll() {
-        if (::adapter.isInitialized) {
-            adapter.deselectAll()
-            saveSelectedUids(adapter.getSelectedUids())
-            // Пересортировываем список после снятия выбора
-            resortAppList(adapter.getSelectedUids())
-        }
-    }
-
     // Новый метод для обновления состояния чекбоксов после изменения правил
     fun refreshSelectedStates() {
         if (::adapter.isInitialized) {
@@ -208,7 +179,7 @@ class AppListFragment : Fragment() {
     }
 
     // Метод для пересортировки списка при изменении выбора
-    // Теперь используется только для операций selectAll/deselectAll и refreshSelectedStates
+    // Теперь используется только для refreshSelectedStates
     private fun resortAppList(selectedUids: Set<String>) {
         if (!::adapter.isInitialized) return
 

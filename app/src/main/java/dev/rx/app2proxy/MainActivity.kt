@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
@@ -17,16 +19,20 @@ import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.color.DynamicColors
 import dev.rx.app2proxy.databinding.ActivityMainBinding
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity(), RulesUpdateListener {
     
     companion object {
         private const val TAG = "MainActivity"
+        private const val SWIPE_THRESHOLD = 100
+        private const val SWIPE_VELOCITY_THRESHOLD = 100
     }
     
     private lateinit var binding: ActivityMainBinding
     private var showSystemApps = false
     private var isSearchExpanded = false
+    private lateinit var gestureDetector: GestureDetector
     
     override fun onCreate(savedInstanceState: Bundle?) {
         // Применяем тему до super.onCreate
@@ -36,82 +42,100 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         
         try {
             enableEdgeToEdge()
-            
             binding = ActivityMainBinding.inflate(layoutInflater)
             setContentView(binding.root)
             
+            setupGestureDetector()
             setupToolbar()
-            setupViewPager()
-            setupBottomNavigation()
             setupToolbarButtons()
             setupSearch()
+            setupViewPager()
+            setupBottomNavigation()
             
-            applyAmoledThemeIfNeeded()
+            // Применяем динамические цвета если включен Material You
+            val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
+            if (prefs.getBoolean("material_you", false) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                DynamicColors.applyToActivityIfAvailable(this)
+            }
             
-            // Проверяем целостность правил
-            checkRulesConsistency()
-            
+            Log.d(TAG, "✅ MainActivity создан")
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка в onCreate", e)
-            finish()
+            Log.e(TAG, "❌ Ошибка создания MainActivity", e)
         }
+    }
+    
+    private fun setupGestureDetector() {
+        gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float
+            ): Boolean {
+                if (!isSearchExpanded) return false
+                
+                val diffX = e2.x - (e1?.x ?: 0f)
+                val diffY = e2.y - (e1?.y ?: 0f)
+                
+                // Проверяем горизонтальный свайп (влево или вправо)
+                if (abs(diffX) > abs(diffY)) {
+                    if (abs(diffX) > SWIPE_THRESHOLD && abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                        // Закрываем поиск при свайпе влево или вправо
+                        Log.d(TAG, "🔍 Поиск закрыт свайпом")
+                        collapseSearch()
+                        return true
+                    }
+                }
+                // Проверяем вертикальный свайп вверх
+                else if (diffY < -SWIPE_THRESHOLD && abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
+                    // Закрываем поиск при свайпе вверх
+                    Log.d(TAG, "🔍 Поиск закрыт свайпом вверх")
+                    collapseSearch()
+                    return true
+                }
+                
+                return false
+            }
+        })
+    }
+    
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        gestureDetector.onTouchEvent(event)
+        return super.onTouchEvent(event)
+    }
+    
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        // Обрабатываем жесты только если поиск развернут
+        if (isSearchExpanded) {
+            gestureDetector.onTouchEvent(ev)
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     private fun applySelectedTheme() {
-        val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
-        val useMaterialYou = prefs.getBoolean("material_you", false)
-        val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
-        val isDarkTheme = prefs.getBoolean("dark_theme", true)
-        
-        Log.d(TAG, "🎨 Применяем тему: MaterialYou=$useMaterialYou, AMOLED=$useAmoledTheme, Dark=$isDarkTheme")
-        
-        // Сначала выбираем базовую тему
-        when {
-            useAmoledTheme && isDarkTheme -> setTheme(R.style.Theme_App2Proxy_Amoled)
-            else -> setTheme(R.style.Theme_App2Proxy)
-        }
-        
-        // Применяем динамические цвета Material You только если включен и поддерживается
-        if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (useAmoledTheme && isDarkTheme) {
-                Log.d(TAG, "🎨 Применяем AMOLED + Material You")
-                AmoledDynamicColorScheme.applyAmoledDynamicColors(this)
+        try {
+            val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
+            val isDarkTheme = prefs.getBoolean("dark_theme", true)
+            val isAmoledTheme = prefs.getBoolean("amoled_theme", false)
+            
+            if (isDarkTheme && isAmoledTheme) {
+                setTheme(R.style.Theme_App2Proxy_Amoled)
             } else {
-                Log.d(TAG, "🎨 Применяем стандартный Material You")
-                DynamicColors.applyToActivityIfAvailable(this)
+                // Используем основную тему, которая поддерживает DayNight
+                setTheme(R.style.Theme_App2Proxy)
             }
+            
+            Log.d(TAG, "✅ Тема применена: dark=$isDarkTheme, amoled=$isAmoledTheme")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка применения темы", e)
         }
     }
-    
-    private fun applyAmoledThemeIfNeeded() {
-        val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
-        val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
-        val isDarkTheme = prefs.getBoolean("dark_theme", true)
-        
-        if (useAmoledTheme && isDarkTheme) {
-            // Применяем черный фон только к корневому контейнеру
-            AmoledDynamicColorScheme.applyAmoledBackgroundToView(binding.root)
-            
-            // Применяем AMOLED стиль к Toolbar
-            AmoledDynamicColorScheme.applyAmoledToolbarStyle(binding.toolbar, this)
-            
-            // Применяем AMOLED фон к AppBarLayout
-            binding.appBarLayout.setBackgroundColor(android.graphics.Color.BLACK)
-            
 
-            binding.bottomNavigation.setBackgroundColor(android.graphics.Color.BLACK)
-            // Применяем стили к кнопкам в toolbar
-            applyAmoledStylesToToolbarButtons()
-            
-            Log.d(TAG, "✅ AMOLED стиль применен к MainActivity")
-        }
-    }
-    
     private fun applyAmoledStylesToToolbarButtons() {
         try {
             val whiteColor = ContextCompat.getColor(this, android.R.color.white)
             
-            // Применяем белый цвет к иконкам кнопок
+            // Применяем белый цвет ко всем иконкам кнопок в toolbar
             binding.btnSearch.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
             binding.btnSettings.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
             binding.btnToggleSystemApps.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
@@ -133,6 +157,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 // Скрываем стандартный заголовок, так как используем кастомный
                 setDisplayShowTitleEnabled(false)
             }
+            
             Log.d(TAG, "✅ Toolbar настроен")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Ошибка настройки toolbar", e)
@@ -200,6 +225,13 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 } else {
                     false
                 }
+            }
+            
+            // Добавляем обработчик касаний для поля поиска
+            binding.searchEditText.setOnTouchListener { _, event ->
+                // Передаем касания детектору жестов, но не блокируем их
+                gestureDetector.onTouchEvent(event)
+                false // Возвращаем false, чтобы EditText продолжал обрабатывать касания
             }
             
             Log.d(TAG, "✅ Поиск настроен")
@@ -365,36 +397,10 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         }
     }
 
-    // Реализация RulesUpdateListener
-    override fun onRulesUpdated() {
-        try {
-            getAppListFragment()?.refreshSelectedStates()
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка обновления правил", e)
-        }
-    }
-
-    private fun getAppListFragment(): AppListFragment? {
-        return try {
-            supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка получения AppListFragment", e)
-            null
-        }
-    }
-
-    private fun getRulesManagerFragment(): RulesManagerFragment? {
-        return try {
-            supportFragmentManager.findFragmentByTag("f1") as? RulesManagerFragment
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка получения RulesManagerFragment", e)
-            null
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         
+        // Применяем AMOLED стили при возврате в активность
         applyAmoledThemeIfNeeded()
         
         val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
@@ -413,6 +419,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
 
     override fun onBackPressed() {
         if (isSearchExpanded) {
+            Log.d(TAG, "🔍 Поиск закрыт кнопкой Назад")
             collapseSearch()
         } else {
             // super.onBackPressed() 'onBackPressed(): Unit' is deprecated. Deprecated in Java
@@ -426,13 +433,77 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             val selectedUids = prefs.getStringSet("selected_uids", emptySet()) ?: emptySet()
             
             if (selectedUids.isNotEmpty()) {
-                Log.d(TAG, "✅ Найдено ${selectedUids.size} сохраненных правил")
-            } else {
-                Log.d(TAG, "ℹ️ Нет сохраненных правил")
+                Log.d(TAG, "📋 Проверяем консистентность правил для ${selectedUids.size} приложений")
+                
+                val missingRules = mutableListOf<String>()
+                
+                for (uid in selectedUids) {
+                    val hasOutputRule = checkOutputRuleExists(uid)
+                    if (!hasOutputRule) {
+                        missingRules.add(uid)
+                    }
+                }
+                
+                if (missingRules.isNotEmpty()) {
+                    Log.w(TAG, "⚠️ Обнаружены отсутствующие правила для ${missingRules.size} приложений")
+                }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Ошибка проверки правил", e)
+            Log.e(TAG, "❌ Ошибка проверки консистентности", e)
         }
+    }
+
+    private fun checkOutputRuleExists(uid: String): Boolean {
+        try {
+            val process = ProcessBuilder("su", "-c", "iptables -t nat -L OUTPUT -n")
+                .redirectErrorStream(true)
+                .start()
+            
+            val output = process.inputStream.bufferedReader().readText()
+            process.waitFor()
+            
+            return output.contains("owner UID match $uid")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка проверки правила для UID $uid", e)
+            return false
+        }
+    }
+
+    private fun getAppListFragment(): AppListFragment? {
+        return try {
+            supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка получения AppListFragment", e)
+            null
+        }
+    }
+
+    private fun getRulesManagerFragment(): RulesManagerFragment? {
+        return try {
+            supportFragmentManager.findFragmentByTag("f1") as? RulesManagerFragment
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка получения RulesManagerFragment", e)
+            null
+        }
+    }
+
+    private fun applyAmoledThemeIfNeeded() {
+        val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
+        val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
+        val isDarkTheme = prefs.getBoolean("dark_theme", true)
+        val useMaterialYou = prefs.getBoolean("material_you", false)
+        
+        if (useAmoledTheme && isDarkTheme) {
+            if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                AmoledDynamicColorScheme.applyAmoledToolbarStyle(binding.toolbar, this)
+            }
+            applyAmoledStylesToToolbarButtons()
+        }
+    }
+
+    override fun onRulesUpdated() {
+        // Обновляем состояние чекбоксов в списке приложений
+        getAppListFragment()?.refreshSelectedStates()
     }
 
     // Адаптер для ViewPager

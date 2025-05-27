@@ -20,25 +20,24 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorSurface"
-            app:titleCentered="true"
+            app:titleCentered="false"
             app:titleTextColor="?attr/colorOnSurface"
             style="@style/Widget.Material3.Toolbar">
 
             <!-- Обычное состояние тулбара -->
             <LinearLayout
                 android:id="@+id/toolbarNormalState"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_gravity="end"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginEnd="8dp">
+                android:gravity="center_vertical">
 
-                <!-- Кнопка поиска -->
+                <!-- Кнопка поиска в самом начале -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSearch"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
+                    android:layout_marginStart="4dp"
                     android:layout_marginEnd="8dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
@@ -56,48 +55,70 @@
                     style="@style/Widget.Material3.Button.IconButton"
                     android:contentDescription="Поиск приложений" />
 
-                <!-- Кнопка показа системных приложений -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnToggleSystemApps"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginEnd="8dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:padding="12dp"
-                    android:scaleType="fitCenter"
-                    app:icon="@drawable/ic_visibility_24"
-                    app:iconSize="24dp"
-                    app:iconTint="?attr/colorOnSurface"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:contentDescription="Показать/скрыть системные приложения" />
+                <!-- Заголовок -->
+                <TextView
+                    android:id="@+id/toolbarTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/app_name"
+                    android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+                    android:textColor="?attr/colorOnSurface"
+                    android:gravity="start|center_vertical"
+                    android:layout_marginEnd="8dp" />
 
-                <!-- Кнопка настроек -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSettings"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:padding="12dp"
-                    android:scaleType="fitCenter"
-                    app:icon="@drawable/ic_settings_24"
-                    app:iconSize="24dp"
-                    app:iconTint="?attr/colorOnSurface"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:contentDescription="Настройки" />
+                <!-- Правые кнопки -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginEnd="8dp">
+
+                    <!-- Кнопка показа системных приложений -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnToggleSystemApps"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="8dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:insetLeft="0dp"
+                        android:insetRight="0dp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="12dp"
+                        android:scaleType="fitCenter"
+                        app:icon="@drawable/ic_visibility_24"
+                        app:iconSize="24dp"
+                        app:iconTint="?attr/colorOnSurface"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:contentDescription="Показать/скрыть системные приложения" />
+
+                    <!-- Кнопка настроек -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSettings"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:insetLeft="0dp"
+                        android:insetRight="0dp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="12dp"
+                        android:scaleType="fitCenter"
+                        app:icon="@drawable/ic_settings_24"
+                        app:iconSize="24dp"
+                        app:iconTint="?attr/colorOnSurface"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:contentDescription="Настройки" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

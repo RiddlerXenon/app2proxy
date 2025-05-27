@@ -117,6 +117,9 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             binding.btnToggleSystemApps.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
             binding.btnCloseSearch.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
             
+            // Применяем белый цвет к заголовку
+            binding.toolbarTitle.setTextColor(whiteColor)
+            
             Log.d(TAG, "✅ AMOLED стиль применен к кнопкам toolbar")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Ошибка применения AMOLED к кнопкам", e)
@@ -127,8 +130,8 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         try {
             setSupportActionBar(binding.toolbar)
             supportActionBar?.apply {
-                title = getString(R.string.app_name)
-                setDisplayShowTitleEnabled(true)
+                // Скрываем стандартный заголовок, так как используем кастомный
+                setDisplayShowTitleEnabled(false)
             }
             Log.d(TAG, "✅ Toolbar настроен")
         } catch (e: Exception) {
@@ -217,9 +220,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             // Показываем состояние поиска
             binding.toolbarSearchState.visibility = View.VISIBLE
             
-            // Скрываем заголовок
-            supportActionBar?.setDisplayShowTitleEnabled(false)
-            
             // Фокусируемся на поле поиска и показываем клавиатуру
             binding.searchEditText.requestFocus()
             showKeyboard()
@@ -244,9 +244,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             
             // Показываем обычное состояние тулбара
             binding.toolbarNormalState.visibility = View.VISIBLE
-            
-            // Показываем заголовок
-            supportActionBar?.setDisplayShowTitleEnabled(true)
             
             // Скрываем клавиатуру
             hideKeyboard()

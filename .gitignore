@@ -50,3 +50,6 @@ coverage/
 # Кэш lint
 lint/intermediates/
 lint/generated/
+
+# Файлы конфигурации Gradle
+my-release-key.jks

@@ -32,11 +32,32 @@ class AppListFragment : Fragment(), RulesUpdateListener {
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        // Настройка SwipeRefreshLayout для обновления списка
+        binding.swipeRefresh.setOnRefreshListener {
+            refreshAppList()
+        }
+
         binding.btnApply.setOnClickListener {
             applyProxyRules()
         }
 
         updateAppList()
+    }
+
+    private fun refreshAppList() {
+        try {
+            // Обновляем список приложений
+            updateAppList()
+            
+            // Останавливаем анимацию обновления
+            binding.swipeRefresh.isRefreshing = false
+            
+            // Показываем сообщение об успешном обновлении
+            Toast.makeText(requireContext(), "Список приложений обновлен", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            binding.swipeRefresh.isRefreshing = false
+            Toast.makeText(requireContext(), "Ошибка обновления списка", Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun setShowSystemApps(show: Boolean) {

@@ -6,12 +6,11 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -19,20 +18,16 @@ import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.color.DynamicColors
 import dev.rx.app2proxy.databinding.ActivityMainBinding
-import kotlin.math.abs
 
 class MainActivity : AppCompatActivity(), RulesUpdateListener {
     
     companion object {
         private const val TAG = "MainActivity"
-        private const val SWIPE_THRESHOLD = 100
-        private const val SWIPE_VELOCITY_THRESHOLD = 100
     }
     
     private lateinit var binding: ActivityMainBinding
     private var showSystemApps = false
     private var isSearchExpanded = false
-    private lateinit var gestureDetector: GestureDetector
     
     override fun onCreate(savedInstanceState: Bundle?) {
         // Применяем тему до super.onCreate
@@ -45,12 +40,12 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             binding = ActivityMainBinding.inflate(layoutInflater)
             setContentView(binding.root)
             
-            setupGestureDetector()
             setupToolbar()
             setupToolbarButtons()
             setupSearch()
             setupViewPager()
             setupBottomNavigation()
+            setupBackPressedCallback()
             
             // Применяем динамические цвета если включен Material You
             val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
@@ -64,52 +59,20 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
         }
     }
     
-    private fun setupGestureDetector() {
-        gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onFling(
-                e1: MotionEvent?,
-                e2: MotionEvent,
-                velocityX: Float,
-                velocityY: Float
-            ): Boolean {
-                if (!isSearchExpanded) return false
-                
-                val diffX = e2.x - (e1?.x ?: 0f)
-                val diffY = e2.y - (e1?.y ?: 0f)
-                
-                // Проверяем горизонтальный свайп (влево или вправо)
-                if (abs(diffX) > abs(diffY)) {
-                    if (abs(diffX) > SWIPE_THRESHOLD && abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
-                        // Закрываем поиск при свайпе влево или вправо
-                        Log.d(TAG, "🔍 Поиск закрыт свайпом")
-                        collapseSearch()
-                        return true
-                    }
-                }
-                // Проверяем вертикальный свайп вверх
-                else if (diffY < -SWIPE_THRESHOLD && abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
-                    // Закрываем поиск при свайпе вверх
-                    Log.d(TAG, "🔍 Поиск закрыт свайпом вверх")
+    private fun setupBackPressedCallback() {
+        // Настраиваем обработку back gesture для закрытия поиска
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (isSearchExpanded) {
+                    Log.d(TAG, "🔍 Поиск закрыт back gesture")
                     collapseSearch()
-                    return true
+                } else {
+                    // Если поиск не открыт, выполняем стандартное действие back
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
                 }
-                
-                return false
             }
         })
-    }
-    
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        gestureDetector.onTouchEvent(event)
-        return super.onTouchEvent(event)
-    }
-    
-    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        // Обрабатываем жесты только если поиск развернут
-        if (isSearchExpanded) {
-            gestureDetector.onTouchEvent(ev)
-        }
-        return super.dispatchTouchEvent(ev)
     }
 
     private fun applySelectedTheme() {
@@ -225,13 +188,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 } else {
                     false
                 }
-            }
-            
-            // Добавляем обработчик касаний для поля поиска
-            binding.searchEditText.setOnTouchListener { _, event ->
-                // Передаем касания детектору жестов, но не блокируем их
-                gestureDetector.onTouchEvent(event)
-                false // Возвращаем false, чтобы EditText продолжал обрабатывать касания
             }
             
             Log.d(TAG, "✅ Поиск настроен")
@@ -415,16 +371,6 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 applyAmoledStylesToToolbarButtons()
             }, 100)
         }    
-    }
-
-    override fun onBackPressed() {
-        if (isSearchExpanded) {
-            Log.d(TAG, "🔍 Поиск закрыт кнопкой Назад")
-            collapseSearch()
-        } else {
-            // super.onBackPressed() 'onBackPressed(): Unit' is deprecated. Deprecated in Java
-            onBackPressedDispatcher.onBackPressed()
-        }
     }
 
     private fun checkRulesConsistency() {

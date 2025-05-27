@@ -24,14 +24,37 @@
             app:titleTextColor="?attr/colorOnSurface"
             style="@style/Widget.Material3.Toolbar">
 
-            <!-- Добавляем кнопки прямо в toolbar -->
+            <!-- Обычное состояние тулбара -->
             <LinearLayout
+                android:id="@+id/toolbarNormalState"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="end"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginEnd="8dp">
+
+                <!-- Кнопка поиска -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSearch"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="12dp"
+                    android:scaleType="fitCenter"
+                    app:icon="@drawable/ic_search_24"
+                    app:iconSize="24dp"
+                    app:iconTint="?attr/colorOnSurface"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:contentDescription="Поиск приложений" />
 
                 <!-- Кнопка показа системных приложений -->
                 <com.google.android.material.button.MaterialButton
@@ -75,6 +98,52 @@
                     app:iconPadding="0dp"
                     style="@style/Widget.Material3.Button.IconButton"
                     android:contentDescription="Настройки" />
+
+            </LinearLayout>
+
+            <!-- Состояние поиска -->
+            <LinearLayout
+                android:id="@+id/toolbarSearchState"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone"
+                android:paddingStart="16dp"
+                android:paddingEnd="8dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/searchEditText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Поиск приложений..."
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    android:background="@android:color/transparent"
+                    android:maxLines="1"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCloseSearch"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="12dp"
+                    android:scaleType="fitCenter"
+                    app:icon="@drawable/ic_close_24"
+                    app:iconSize="24dp"
+                    app:iconTint="?attr/colorOnSurface"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:contentDescription="Закрыть поиск" />
 
             </LinearLayout>
 

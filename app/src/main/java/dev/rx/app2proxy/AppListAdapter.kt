@@ -14,16 +14,18 @@ class AppListAdapter(
     private val onSelectedChanged: (Set<String>) -> Unit
 ) : RecyclerView.Adapter<AppListAdapter.AppViewHolder>() {
     private val selected = selectedUids.toMutableSet()
+    private var filteredApps: List<AppInfo> = apps
+    private var currentFilter: String = ""
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
         val binding = ItemAppBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return AppViewHolder(binding)
     }
 
-    override fun getItemCount(): Int = apps.size
+    override fun getItemCount(): Int = filteredApps.size
 
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
-        val app = apps[position]
+        val app = filteredApps[position]
         holder.binding.apply {
             // Загружаем иконку приложения
             try {
@@ -83,7 +85,7 @@ class AppListAdapter(
 
     fun selectAll() {
         selected.clear()
-        selected.addAll(apps.map { it.uid.toString() })
+        selected.addAll(filteredApps.map { it.uid.toString() })
         notifyDataSetChanged()
         onSelectedChanged(selected)
     }
@@ -98,7 +100,7 @@ class AppListAdapter(
         this.apps = newApps
         selected.clear()
         selected.addAll(selectedUids)
-        notifyDataSetChanged()
+        applyFilter(currentFilter)
     }
 
     // Метод для обновления данных с сортировкой
@@ -106,7 +108,7 @@ class AppListAdapter(
         this.apps = newApps
         selected.clear()
         selected.addAll(selectedUids)
-        notifyDataSetChanged()
+        applyFilter(currentFilter)
         onSelectedChanged(selected)
     }
 
@@ -117,8 +119,8 @@ class AppListAdapter(
         selected.addAll(selectedUids)
         
         // Обновляем только те элементы, состояние которых изменилось
-        for (i in apps.indices) {
-            val uid = apps[i].uid.toString()
+        for (i in filteredApps.indices) {
+            val uid = filteredApps[i].uid.toString()
             val wasSelected = oldSelected.contains(uid)
             val isSelected = selectedUids.contains(uid)
             
@@ -129,6 +131,30 @@ class AppListAdapter(
         
         onSelectedChanged(selected)
     }
+
+    // Новый метод для фильтрации приложений
+    fun filter(query: String) {
+        currentFilter = query
+        applyFilter(query)
+    }
+
+    private fun applyFilter(query: String) {
+        filteredApps = if (query.isBlank()) {
+            apps
+        } else {
+            apps.filter { app ->
+                app.appName.contains(query, ignoreCase = true) ||
+                app.packageName.contains(query, ignoreCase = true)
+            }
+        }
+        notifyDataSetChanged()
+    }
+
+    // Метод для получения количества отфильтрованных приложений
+    fun getFilteredCount(): Int = filteredApps.size
+
+    // Метод для проверки, активен ли фильтр
+    fun isFiltered(): Boolean = currentFilter.isNotBlank()
 
     class AppViewHolder(val binding: ItemAppBinding) : RecyclerView.ViewHolder(binding.root)
 }

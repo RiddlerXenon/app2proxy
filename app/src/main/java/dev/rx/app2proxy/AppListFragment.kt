@@ -78,6 +78,31 @@ class AppListFragment : Fragment() {
         }
     }
 
+    // Новый метод для поиска приложений
+    fun filterApps(query: String) {
+        if (::adapter.isInitialized) {
+            adapter.filter(query)
+        }
+    }
+
+    // Метод для получения количества отфильтрованных приложений
+    fun getFilteredAppsCount(): Int {
+        return if (::adapter.isInitialized) {
+            adapter.getFilteredCount()
+        } else {
+            0
+        }
+    }
+
+    // Метод для проверки, активен ли фильтр
+    fun isSearchActive(): Boolean {
+        return if (::adapter.isInitialized) {
+            adapter.isFiltered()
+        } else {
+            false
+        }
+    }
+
     private fun applyProxyRules() {
         if (!::adapter.isInitialized) {
             return

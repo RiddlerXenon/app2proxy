@@ -3,7 +3,11 @@ package dev.rx.app2proxy
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +26,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
     
     private lateinit var binding: ActivityMainBinding
     private var showSystemApps = false
+    private var isSearchExpanded = false
     
     override fun onCreate(savedInstanceState: Bundle?) {
         // Применяем тему до super.onCreate
@@ -39,6 +44,7 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             setupViewPager()
             setupBottomNavigation()
             setupToolbarButtons()
+            setupSearch()
             
             applyAmoledThemeIfNeeded()
             
@@ -106,8 +112,10 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             val whiteColor = ContextCompat.getColor(this, android.R.color.white)
             
             // Применяем белый цвет к иконкам кнопок
+            binding.btnSearch.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
             binding.btnSettings.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
             binding.btnToggleSystemApps.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
+            binding.btnCloseSearch.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
             
             Log.d(TAG, "✅ AMOLED стиль применен к кнопкам toolbar")
         } catch (e: Exception) {
@@ -130,6 +138,16 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
     
     private fun setupToolbarButtons() {
         try {
+            // Настройка кнопки поиска
+            binding.btnSearch.setOnClickListener {
+                expandSearch()
+            }
+            
+            // Настройка кнопки закрытия поиска
+            binding.btnCloseSearch.setOnClickListener {
+                collapseSearch()
+            }
+            
             // Настройка кнопки переключения показа системных приложений
             updateSystemAppsButtonIcon()
             binding.btnToggleSystemApps.setOnClickListener {
@@ -154,6 +172,125 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
             Log.d(TAG, "✅ Кнопки toolbar настроены")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Ошибка настройки кнопок toolbar", e)
+        }
+    }
+
+    private fun setupSearch() {
+        try {
+            // Настройка поля поиска
+            binding.searchEditText.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                
+                override fun afterTextChanged(s: Editable?) {
+                    val query = s?.toString() ?: ""
+                    performSearch(query)
+                }
+            })
+            
+            // Обработка нажатия клавиши поиска на клавиатуре
+            binding.searchEditText.setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                    hideKeyboard()
+                    true
+                } else {
+                    false
+                }
+            }
+            
+            Log.d(TAG, "✅ Поиск настроен")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка настройки поиска", e)
+        }
+    }
+
+    private fun expandSearch() {
+        if (isSearchExpanded) return
+        
+        try {
+            isSearchExpanded = true
+            
+            // Скрываем обычное состояние тулбара
+            binding.toolbarNormalState.visibility = View.GONE
+            
+            // Показываем состояние поиска
+            binding.toolbarSearchState.visibility = View.VISIBLE
+            
+            // Скрываем заголовок
+            supportActionBar?.setDisplayShowTitleEnabled(false)
+            
+            // Фокусируемся на поле поиска и показываем клавиатуру
+            binding.searchEditText.requestFocus()
+            showKeyboard()
+            
+            Log.d(TAG, "✅ Поиск развернут")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка разворачивания поиска", e)
+        }
+    }
+
+    private fun collapseSearch() {
+        if (!isSearchExpanded) return
+        
+        try {
+            isSearchExpanded = false
+            
+            // Очищаем поле поиска
+            binding.searchEditText.text?.clear()
+            
+            // Скрываем состояние поиска
+            binding.toolbarSearchState.visibility = View.GONE
+            
+            // Показываем обычное состояние тулбара
+            binding.toolbarNormalState.visibility = View.VISIBLE
+            
+            // Показываем заголовок
+            supportActionBar?.setDisplayShowTitleEnabled(true)
+            
+            // Скрываем клавиатуру
+            hideKeyboard()
+            
+            // Сбрасываем фильтр в списке приложений
+            getAppListFragment()?.filterApps("")
+            
+            Log.d(TAG, "✅ Поиск свернут")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка сворачивания поиска", e)
+        }
+    }
+
+    private fun performSearch(query: String) {
+        try {
+            // Выполняем поиск только на вкладке приложений
+            if (binding.viewPager.currentItem == 0) {
+                getAppListFragment()?.filterApps(query)
+                
+                if (query.isNotBlank()) {
+                    val count = getAppListFragment()?.getFilteredAppsCount() ?: 0
+                    Log.d(TAG, "🔍 Найдено $count приложений по запросу: $query")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка выполнения поиска", e)
+        }
+    }
+
+    private fun showKeyboard() {
+        try {
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(binding.searchEditText, InputMethodManager.SHOW_IMPLICIT)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка показа клавиатуры", e)
+        }
+    }
+
+    private fun hideKeyboard() {
+        try {
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(binding.searchEditText.windowToken, 0)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка скрытия клавиатуры", e)
         }
     }
     
@@ -188,10 +325,17 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 when (item.itemId) {
                     R.id.nav_apps -> {
                         binding.viewPager.currentItem = 0
+                        // Показываем кнопку поиска только на вкладке приложений
+                        binding.btnSearch.visibility = View.VISIBLE
                         true
                     }
                     R.id.nav_rules -> {
                         binding.viewPager.currentItem = 1
+                        // Сворачиваем поиск и скрываем кнопку на других вкладках
+                        if (isSearchExpanded) {
+                            collapseSearch()
+                        }
+                        binding.btnSearch.visibility = View.GONE
                         true
                     }
                     else -> false
@@ -203,8 +347,17 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 override fun onPageSelected(position: Int) {
                     super.onPageSelected(position)
                     when (position) {
-                        0 -> bottomNavigation.selectedItemId = R.id.nav_apps
-                        1 -> bottomNavigation.selectedItemId = R.id.nav_rules
+                        0 -> {
+                            bottomNavigation.selectedItemId = R.id.nav_apps
+                            binding.btnSearch.visibility = View.VISIBLE
+                        }
+                        1 -> {
+                            bottomNavigation.selectedItemId = R.id.nav_rules
+                            if (isSearchExpanded) {
+                                collapseSearch()
+                            }
+                            binding.btnSearch.visibility = View.GONE
+                        }
                     }
                 }
             })
@@ -259,6 +412,14 @@ class MainActivity : AppCompatActivity(), RulesUpdateListener {
                 applyAmoledStylesToToolbarButtons()
             }, 100)
         }    
+    }
+
+    override fun onBackPressed() {
+        if (isSearchExpanded) {
+            collapseSearch()
+        } else {
+            super.onBackPressed()
+        }
     }
 
     private fun checkRulesConsistency() {

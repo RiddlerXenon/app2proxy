@@ -64,8 +64,8 @@ class AppListAdapter(
                 } else {
                     selected.remove(app.uid.toString())
                 }
-                // Уведомляем об изменении без пересортировки
-                onSelectedChanged(selected)
+                // УДАЛЕНО: автоматическое сохранение при изменении выбора
+                // onSelectedChanged(selected) - убираем этот вызов
             }
             
             // Добавляем клик по всей карточке
@@ -106,21 +106,6 @@ class AppListAdapter(
 
     fun getCurrentApps(): List<AppInfo> = apps
 
-    fun selectAll() {
-        selected.clear()
-        val appsToSelect = filteredApps.take(MAX_SELECTED_APPS).map { it.uid.toString() }
-        selected.addAll(appsToSelect)
-        
-        notifyDataSetChanged()
-        onSelectedChanged(selected)
-    }
-
-    fun deselectAll() {
-        selected.clear()
-        notifyDataSetChanged()
-        onSelectedChanged(selected)
-    }
-
     fun updateData(newApps: List<AppInfo>, selectedUids: Set<String>) {
         this.apps = newApps
         selected.clear()
@@ -136,7 +121,7 @@ class AppListAdapter(
         // Ограничиваем количество выбранных приложений при загрузке
         selected.addAll(selectedUids.take(MAX_SELECTED_APPS))
         applyFilter(currentFilter)
-        onSelectedChanged(selected)
+        // НЕ вызываем onSelectedChanged здесь автоматически
     }
 
     // Метод для обновления только состояния выбранных элементов
@@ -157,6 +142,7 @@ class AppListAdapter(
             }
         }
         
+        // Вызываем onSelectedChanged только при обновлении извне
         onSelectedChanged(selected)
     }
 

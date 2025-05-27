@@ -1,26 +1,26 @@
 package dev.rx.app2proxy
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
 import android.os.Bundle
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.LinearLayoutManager
 import dev.rx.app2proxy.databinding.FragmentAppListBinding
 
-class AppListFragment : Fragment() {
+class AppListFragment : Fragment(), RulesUpdateListener {
+
     private var _binding: FragmentAppListBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: AppListAdapter
     private var showSystemApps = false
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAppListBinding.inflate(inflater, container, false)
@@ -30,11 +30,7 @@ class AppListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Настраиваем SwipeRefreshLayout
-        binding.swipeRefresh.setOnRefreshListener {
-            updateAppList()
-            binding.swipeRefresh.isRefreshing = false
-        }
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         binding.btnApply.setOnClickListener {
             applyProxyRules()
@@ -115,7 +111,7 @@ class AppListFragment : Fragment() {
             IptablesService.applyRules(requireContext(), uidsString)
         }
         
-        // Сохраняем текущее состояние
+        // Сохраняем текущее состояние ТОЛЬКО ПОСЛЕ нажатия кнопки "Применить"
         saveSelectedUids(selectedUids)
         
         // Показываем уведомление пользователю
@@ -146,8 +142,9 @@ class AppListFragment : Fragment() {
         val sortedApps = sortAppsBySelection(apps, prevSelected)
         
         if (!::adapter.isInitialized) {
-            adapter = AppListAdapter(sortedApps, prevSelected, requireContext().packageManager) { updatedUids ->
-                saveSelectedUids(updatedUids)
+            adapter = AppListAdapter(sortedApps, prevSelected, requireContext().packageManager) { _ ->
+                // УБИРАЕМ автоматическое сохранение - теперь сохранение происходит только при нажатии "Применить"
+                // saveSelectedUids(updatedUids) - убираем
                 // УБИРАЕМ автоматическую пересортировку при каждом изменении выбора
                 // resortAppList(updatedUids) - закомментировано для предотвращения скачков
             }
@@ -162,7 +159,7 @@ class AppListFragment : Fragment() {
         val selectedApps = mutableListOf<AppInfo>()
         val unselectedApps = mutableListOf<AppInfo>()
 
-        apps.forEach { app ->
+        for (app in apps) {
             if (selectedUids.contains(app.uid.toString())) {
                 selectedApps.add(app)
             } else {
@@ -171,50 +168,44 @@ class AppListFragment : Fragment() {
         }
 
         // Сортируем каждую группу по имени
-        selectedApps.sortBy { it.appName }
-        unselectedApps.sortBy { it.appName }
+        selectedApps.sortBy { it.appName.lowercase() }
+        unselectedApps.sortBy { it.appName.lowercase() }
 
-        // Возвращаем: сначала выбранные, потом невыбранные
+        // Возвращаем объединенный список: сначала выбранные, потом остальные
         return selectedApps + unselectedApps
     }
 
-    // Метод для пересортировки списка при изменении выбора
-    // Теперь используется только для refreshSelectedStates
+    // Метод для пересортировки списка без полной перезагрузки
     private fun resortAppList(selectedUids: Set<String>) {
-        if (!::adapter.isInitialized) return
-
-        // Сохраняем текущую позицию скролла
-        val layoutManager = binding.recyclerView.layoutManager
-        val scrollPosition = if (layoutManager is androidx.recyclerview.widget.LinearLayoutManager) {
-            layoutManager.findFirstVisibleItemPosition()
-        } else {
-            0
-        }
-
-        val currentApps = adapter.getCurrentApps()
-        val sortedApps = sortAppsBySelection(currentApps, selectedUids)
-        adapter.updateDataWithSort(sortedApps, selectedUids)
-
-        // Восстанавливаем позицию скролла
-        binding.recyclerView.post {
-            if (scrollPosition != RecyclerView.NO_POSITION) {
-                binding.recyclerView.scrollToPosition(minOf(scrollPosition, sortedApps.size - 1))
-            }
+        if (::adapter.isInitialized) {
+            val currentApps = adapter.getCurrentApps()
+            val sortedApps = sortAppsBySelection(currentApps, selectedUids)
+            adapter.updateDataWithSort(sortedApps, selectedUids)
         }
     }
 
-    private fun getPrefs() = requireContext().getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
+    override fun onRulesUpdated() {
+        refreshSelectedStates()
+    }
 
-    private fun getInstalledApps(showSystem: Boolean): List<AppInfo> {
+    private fun getPrefs(): SharedPreferences {
+        return requireContext().getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
+    }
+
+    private fun getInstalledApps(includeSystemApps: Boolean): List<AppInfo> {
         return try {
             val pm = requireContext().packageManager
-            pm.getInstalledApplications(PackageManager.GET_META_DATA)
-                .filter {
-                    if (showSystem) true else (it.flags and ApplicationInfo.FLAG_SYSTEM) == 0
-                }
-                .filter { 
+            val packages = pm.getInstalledApplications(0)
+            
+            packages
+                .filter { appInfo ->
+                    // Фильтруем системные приложения, если нужно
+                    val isSystemApp = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+                    val includeThisApp = includeSystemApps || !isSystemApp
+                    
+                    includeThisApp &&
                     // Исключаем само приложение App2Proxy из списка
-                    it.packageName != "dev.rx.app2proxy"
+                    appInfo.packageName != "dev.rx.app2proxy"
                 }
                 .mapNotNull { appInfo ->
                     try {

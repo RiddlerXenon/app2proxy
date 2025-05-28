@@ -1,0 +1,17 @@
+default_platform(:android)
+
+platform :android do
+  desc "Build release APK"
+  lane :build_release do
+    gradle(
+      task: "assembleRelease",
+      build_type: "Release"
+    )
+  end
+
+  desc "Deploy metadata to repository"
+  lane :deploy_metadata do
+    # Эта lane может быть использована для развертывания метаданных
+    puts "Metadata is ready for IzzyOnDroid"
+  end
+end

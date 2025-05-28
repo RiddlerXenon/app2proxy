@@ -1,0 +1,27 @@
+App2Proxy is an application for redirecting traffic from selected applications through a local proxy using iptables.
+
+Key features:
+
+🔒 Secure Traffic Redirection
+• Uses iptables for reliable network traffic redirection
+• Works at system level for maximum efficiency
+• Supports various types of proxy servers
+
+📱 Simple App Management
+• Select specific applications for traffic redirection
+• Intuitive interface for managing rules
+• Quick enable/disable redirection
+
+⚙️ Flexible Configuration
+• Local proxy server configuration
+• iptables rules management
+• Active connections monitoring
+
+🛡️ Security Requirements
+• Requires root access to work with iptables
+• Open source for security verification
+• Minimal system permissions
+
+This application is perfect for users who need to route traffic from specific applications through a proxy server for privacy, bypassing blocks, or other purposes.
+
+WARNING: Root access is required for the application to work!

@@ -1,0 +1,4 @@
+Version 1.0.1:
+• Fixed versioning compatibility
+• Improved stability
+• Preparation for IzzyOnDroid publication

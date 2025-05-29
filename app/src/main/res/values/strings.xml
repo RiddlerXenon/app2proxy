@@ -6,7 +6,11 @@
     <string name="action_settings">Настройки</string>
     <string name="tab_apps">Приложения</string>
     <string name="tab_rules">Правила</string>
-    
+
+    <!-- Нижняя навигация -->
+    <string name="nav_apps">Приложения</string>
+    <string name="nav_rules">Правила</string>
+
     <!-- Действия -->
     <string name="show_system">Показывать системные</string>
     <string name="select_all">Выбрать все</string>

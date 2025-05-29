@@ -2,10 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_apps"
-        android:title="Приложения"
+        android:title="@string/nav_apps"
         android:icon="@drawable/ic_apps_24" />
     <item
         android:id="@+id/nav_rules"
-        android:title="Правила"
+        android:title="@string/nav_rules"
         android:icon="@drawable/ic_rules_24" />
 </menu>

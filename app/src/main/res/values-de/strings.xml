@@ -1,0 +1,64 @@
+<resources>
+    <!-- Grundlegende App-Informationen -->
+    <string name="app_name">App2Proxy</string>
+    
+    <!-- Hauptmenü und Navigation -->
+    <string name="action_settings">Einstellungen</string>
+    <string name="tab_apps">Apps</string>
+    <string name="tab_rules">Regeln</string>
+    
+    <!-- Aktionen -->
+    <string name="show_system">System-Apps anzeigen</string>
+    <string name="select_all">Alle auswählen</string>
+    <string name="deselect_all">Auswahl aufheben</string>
+    <string name="apply">Anwenden</string>
+    
+    <!-- Erscheinungsbild-Einstellungen -->
+    <string name="material_you">Material You (dynamische Farben)</string>
+    <string name="dark_theme">Dunkles Design</string>
+    <string name="amoled_theme">AMOLED-Design</string>
+    <string name="amoled_theme_description">Reiner schwarzer Hintergrund zur Batterieschonung auf AMOLED-Bildschirmen</string>
+    <string name="amoled_theme_requires_dark">AMOLED-Design erfordert aktiviertes dunkles Design</string>
+    <string name="amoled_theme_enabled">AMOLED-Design aktiviert</string>
+    <string name="amoled_theme_disabled">AMOLED-Design deaktiviert</string>
+    
+    <!-- Spracheinstellungen -->
+    <string name="language_settings">Sprache</string>
+    <string name="language_title">App-Sprache</string>
+    <string name="language_description">Sprache der Benutzeroberfläche wählen</string>
+    <string name="language_system">System</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_english">English</string>
+    <string name="language_german">Deutsch</string>
+    <string name="language_changed">Sprache geändert. Bitte starten Sie die App neu</string>
+    
+    <!-- Haupteinstellungen -->
+    <string name="main_settings">Haupteinstellungen</string>
+    <string name="autostart">Anwendung automatisch starten</string>
+    
+    <!-- Netzwerkeinstellungen -->
+    <string name="network_settings">Netzwerkeinstellungen</string>
+    <string name="network_settings_description">Proxy-Server und DNS-Ports konfigurieren</string>
+    <string name="proxy_port_hint">Proxy-Server-Port</string>
+    <string name="proxy_port_helper">Standard: 12345</string>
+    <string name="dns_port_hint">DNS-Server-Port</string>
+    <string name="dns_port_helper">Standard: 10853</string>
+    
+    <!-- Erscheinungsbild -->
+    <string name="appearance_settings">Erscheinungsbild</string>
+    <string name="appearance_settings_description">Farbschema-Einstellungen der App</string>
+    
+    <!-- Nachrichten -->
+    <string name="system_apps_shown">System-Apps angezeigt</string>
+    <string name="system_apps_hidden">System-Apps ausgeblendet</string>
+    <string name="settings_error">Fehler beim Öffnen der Einstellungen</string>
+    <string name="port_changed">Port auf %1$d geändert. Alte Regeln gelöscht.</string>
+    <string name="port_unchanged">Port unverändert: %1$d</string>
+    <string name="enable_dark_theme_first">Aktivieren Sie zuerst das dunkle Design</string>
+    <string name="material_you_unavailable">Material You ist auf dieser Android-Version nicht verfügbar</string>
+    <string name="material_you_enabled">Material You aktiviert</string>
+    <string name="material_you_disabled">Material You deaktiviert</string>
+    <string name="material_you_amoled_enabled">Material You für AMOLED-Design aktiviert.\nDynamische Farben werden auf Oberflächenelemente angewendet,\nHintergrund und AppBar bleiben schwarz.</string>
+    <string name="amoled_material_you_enabled">AMOLED-Design aktiviert.\nMaterial You dynamische Farben werden auf Oberflächenelemente angewendet,\nHintergrund und AppBar werden schwarz sein.</string>
+    <string name="port_update_error">Fehler beim Aktualisieren der Ports: %1$s</string>
+</resources>

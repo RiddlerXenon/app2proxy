@@ -1,16 +1,64 @@
 <resources>
+    <!-- Основная информация приложения -->
     <string name="app_name">App2Proxy</string>
+    
+    <!-- Основное меню и навигация -->
     <string name="action_settings">Настройки</string>
+    <string name="tab_apps">Приложения</string>
+    <string name="tab_rules">Правила</string>
+    
+    <!-- Действия -->
     <string name="show_system">Показывать системные</string>
     <string name="select_all">Выбрать все</string>
     <string name="deselect_all">Снять выделение</string>
     <string name="apply">Применить</string>
+    
+    <!-- Настройки внешнего вида -->
     <string name="material_you">Material You (динамические цвета)</string>
-    <string name="tab_apps">Приложения</string>
-    <string name="tab_rules">Правила</string>
+    <string name="dark_theme">Тёмная тема</string>
     <string name="amoled_theme">AMOLED тема</string>
     <string name="amoled_theme_description">Чисто черный фон для экономии батареи на AMOLED экранах</string>
     <string name="amoled_theme_requires_dark">Для AMOLED темы необходимо включить темную тему</string>
     <string name="amoled_theme_enabled">AMOLED тема включена</string>
     <string name="amoled_theme_disabled">AMOLED тема отключена</string>
+    
+    <!-- Настройки языка -->
+    <string name="language_settings">Язык</string>
+    <string name="language_title">Язык приложения</string>
+    <string name="language_description">Выберите язык интерфейса</string>
+    <string name="language_system">Системный</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_english">English</string>
+    <string name="language_german">Deutsch</string>
+    <string name="language_changed">Язык изменен. Перезапустите приложение</string>
+    
+    <!-- Основные настройки -->
+    <string name="main_settings">Основные настройки</string>
+    <string name="autostart">Автозапуск приложения</string>
+    
+    <!-- Настройки сети -->
+    <string name="network_settings">Настройки сети</string>
+    <string name="network_settings_description">Настройка портов для прокси-сервера и DNS</string>
+    <string name="proxy_port_hint">Порт прокси-сервера</string>
+    <string name="proxy_port_helper">По умолчанию: 12345</string>
+    <string name="dns_port_hint">Порт DNS-сервера</string>
+    <string name="dns_port_helper">По умолчанию: 10853</string>
+    
+    <!-- Внешний вид -->
+    <string name="appearance_settings">Внешний вид</string>
+    <string name="appearance_settings_description">Настройки цветовой схемы приложения</string>
+    
+    <!-- Сообщения -->
+    <string name="system_apps_shown">Показаны системные приложения</string>
+    <string name="system_apps_hidden">Скрыты системные приложения</string>
+    <string name="settings_error">Ошибка открытия настроек</string>
+    <string name="port_changed">Порт изменен на %1$d. Старые правила очищены.</string>
+    <string name="port_unchanged">Порт не изменился: %1$d</string>
+    <string name="enable_dark_theme_first">Сначала включите темную тему</string>
+    <string name="material_you_unavailable">Material You недоступен на этой версии Android</string>
+    <string name="material_you_enabled">Material You включен</string>
+    <string name="material_you_disabled">Material You отключен</string>
+    <string name="material_you_amoled_enabled">Material You включен для AMOLED темы.\nДинамические цвета применятся к элементам интерфейса,\nфон и AppBar останутся черными.</string>
+    <string name="amoled_material_you_enabled">AMOLED тема включена.\nДинамические цвета Material You применятся к элементам интерфейса,\nфон и AppBar будут черными.</string>
+    <string name="port_update_error">Ошибка при обновлении портов: %1$s</string>
 </resources>

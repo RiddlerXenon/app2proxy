@@ -18,8 +18,9 @@ import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.color.DynamicColors
 import dev.rx.app2proxy.databinding.ActivityMainBinding
+import dev.rx.app2proxy.ui.activities.BaseActivity
 
-class MainActivity : AppCompatActivity(), RulesUpdateListener {
+class MainActivity : BaseActivity(), RulesUpdateListener {
     
     companion object {
         private const val TAG = "MainActivity"

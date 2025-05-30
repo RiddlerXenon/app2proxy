@@ -5,10 +5,12 @@ import android.content.Context
 import android.graphics.Color
 import android.util.Log
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.DynamicColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 object AmoledDynamicColorScheme {
     private const val TAG = "AmoledDynamicColors"
@@ -90,6 +92,71 @@ object AmoledDynamicColorScheme {
             
         } catch (e: Exception) {
             Log.e(TAG, "❌ Ошибка применения AMOLED стиля к карточке", e)
+        }
+    }
+    
+    /**
+     * Создает MaterialAlertDialogBuilder с поддержкой AMOLED фона
+     */
+    fun createAmoledMaterialAlertDialogBuilder(
+        context: Context,
+        useAmoledTheme: Boolean = false,
+        isDarkTheme: Boolean = true
+    ): MaterialAlertDialogBuilder {
+        return try {
+            Log.d(TAG, "🎨 Создаем MaterialAlertDialog с AMOLED поддержкой")
+            
+            val builder = MaterialAlertDialogBuilder(context)
+            
+            // Применяем AMOLED стиль только если включены темная тема и AMOLED
+            if (useAmoledTheme && isDarkTheme) {
+                // Используем кастомный стиль для AMOLED темы
+                builder.background?.setTint(Color.BLACK)
+                
+                Log.d(TAG, "✅ AMOLED стиль применен к MaterialAlertDialog")
+            } else {
+                Log.d(TAG, "ℹ️ Используется стандартный стиль для MaterialAlertDialog")
+            }
+            
+            builder
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка создания AMOLED MaterialAlertDialog", e)
+            // Возвращаем стандартный builder в случае ошибки
+            MaterialAlertDialogBuilder(context)
+        }
+    }
+    
+    /**
+     * Применяет AMOLED стиль к уже созданному AlertDialog
+     */
+    fun applyAmoledStyleToDialog(
+        dialog: AlertDialog,
+        useAmoledTheme: Boolean = false,
+        isDarkTheme: Boolean = true
+    ) {
+        try {
+            if (useAmoledTheme && isDarkTheme) {
+                Log.d(TAG, "🎨 Применяем AMOLED стиль к AlertDialog")
+                
+                // Применяем черный фон к диалогу
+                dialog.window?.let { window ->
+                    window.setBackgroundDrawableResource(android.R.color.black)
+                    
+                    // Находим корневой контейнер диалога и применяем черный фон
+                    val decorView = window.decorView
+                    decorView.setBackgroundColor(Color.BLACK)
+                    
+                    // Применяем стиль к содержимому диалога
+                    decorView.findViewById<View>(android.R.id.content)?.let { contentView ->
+                        contentView.setBackgroundColor(Color.BLACK)
+                    }
+                }
+                
+                Log.d(TAG, "✅ AMOLED стиль применен к AlertDialog")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка применения AMOLED стиля к AlertDialog", e)
         }
     }
 }

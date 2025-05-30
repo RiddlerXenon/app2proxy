@@ -78,7 +78,16 @@ class SettingsActivity : BaseActivity() {
         val currentLanguage = getLanguageManager().getCurrentLanguage()
         val currentIndex = languages.indexOf(currentLanguage)
         
-        MaterialAlertDialogBuilder(this)
+        // Получаем настройки темы для применения AMOLED стиля
+        val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
+        val isDarkTheme = prefs.getBoolean("dark_theme", true)
+        
+        // Создаем диалог с поддержкой AMOLED
+        val dialogBuilder = AmoledDynamicColorScheme.createAmoledMaterialAlertDialogBuilder(
+            this, useAmoledTheme, isDarkTheme
+        )
+        
+        val dialog = dialogBuilder
             .setTitle(R.string.language_title)
             .setSingleChoiceItems(languageNames, currentIndex) { dialog, which ->
                 val selectedLanguage = languages[which]
@@ -97,7 +106,13 @@ class SettingsActivity : BaseActivity() {
                 dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .create()
+        
+        // Показываем диалог
+        dialog.show()
+        
+        // Применяем AMOLED стиль к показанному диалогу
+        AmoledDynamicColorScheme.applyAmoledStyleToDialog(dialog, useAmoledTheme, isDarkTheme)
     }
 
     private fun applySelectedTheme() {

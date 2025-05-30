@@ -16,6 +16,8 @@ import com.google.android.material.color.DynamicColors
 import dev.rx.app2proxy.databinding.ActivitySettingsBinding
 import dev.rx.app2proxy.ui.activities.BaseActivity
 import dev.rx.app2proxy.utils.LanguageManager
+// MaterialAlertDialogBuilder
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class SettingsActivity : BaseActivity() {
     
@@ -76,7 +78,7 @@ class SettingsActivity : BaseActivity() {
         val currentLanguage = getLanguageManager().getCurrentLanguage()
         val currentIndex = languages.indexOf(currentLanguage)
         
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.language_title)
             .setSingleChoiceItems(languageNames, currentIndex) { dialog, which ->
                 val selectedLanguage = languages[which]
@@ -139,7 +141,7 @@ class SettingsActivity : BaseActivity() {
             
             // Применяем AMOLED фон к AppBarLayout как в MainActivity
             binding.appBarLayout.setBackgroundColor(android.graphics.Color.BLACK)
-            
+
             Log.d(TAG, "✅ AMOLED стиль применен к Settings (включая Toolbar и AppBarLayout)")
         }
     }

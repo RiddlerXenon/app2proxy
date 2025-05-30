@@ -16,7 +16,6 @@ import com.google.android.material.color.DynamicColors
 import dev.rx.app2proxy.databinding.ActivitySettingsBinding
 import dev.rx.app2proxy.ui.activities.BaseActivity
 import dev.rx.app2proxy.utils.LanguageManager
-// MaterialAlertDialogBuilder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class SettingsActivity : BaseActivity() {
@@ -94,8 +93,6 @@ class SettingsActivity : BaseActivity() {
                 if (selectedLanguage != currentLanguage) {
                     getLanguageManager().setLanguage(selectedLanguage)
                     updateLanguageButtonText()
-                    
-                    Toast.makeText(this, R.string.language_changed, Toast.LENGTH_LONG).show()
                     
                     // Перезапускаем приложение для применения языка
                     val intent = Intent(this, MainActivity::class.java)

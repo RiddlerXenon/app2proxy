@@ -55,7 +55,7 @@ class AppListAdapter(
                         checkBox.isChecked = false
                         Toast.makeText(
                             holder.binding.root.context,
-                            "Можно выбрать максимум $MAX_SELECTED_APPS приложений",
+                            holder.binding.root.context.getString(R.string.max_apps_selected, MAX_SELECTED_APPS),
                             Toast.LENGTH_SHORT
                         ).show()
                         return@setOnCheckedChangeListener
@@ -73,7 +73,7 @@ class AppListAdapter(
                 if (!checkBox.isChecked && selected.size >= MAX_SELECTED_APPS) {
                     Toast.makeText(
                         holder.binding.root.context,
-                        "Можно выбрать максимум $MAX_SELECTED_APPS приложений",
+                        holder.binding.root.context.getString(R.string.max_apps_selected, MAX_SELECTED_APPS),
                         Toast.LENGTH_SHORT
                     ).show()
                     return@setOnClickListener

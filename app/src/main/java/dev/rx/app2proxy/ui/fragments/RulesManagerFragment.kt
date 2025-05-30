@@ -86,7 +86,7 @@ class RulesManagerFragment : Fragment() {
                 } else {
                     RuleInfo(
                         uid = uid,
-                        appName = "Неизвестное приложение",
+                        appName = "Unknown App",
                         packageName = "unknown",
                         isActive = true
                     )

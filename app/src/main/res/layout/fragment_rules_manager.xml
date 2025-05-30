@@ -26,7 +26,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Управление правилами"
+                    android:text="@string/manage_rules"
                     android:textAppearance="?attr/textAppearanceHeadlineSmall"
                     android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp" />
@@ -34,7 +34,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Здесь вы можете управлять правилами iptables для выбранных приложений"
+                    android:text="@string/manage_rules_description"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:layout_marginBottom="16dp" />
@@ -43,7 +43,7 @@
                     android:id="@+id/btnShowCurrentRules"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Показать текущие правила"
+                    android:text="@string/show_current_rules"
                     app:icon="@drawable/ic_list"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_marginBottom="8dp" />
@@ -52,7 +52,7 @@
                     android:id="@+id/btnClearAllRules"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Очистить все правила"
+                    android:text="@string/clear_all_rules"
                     app:icon="@drawable/ic_clear"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     app:strokeColor="?attr/colorError"
@@ -88,7 +88,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:text="Удалить выбранные"
+        android:text="@string/remove_selected"
         app:icon="@drawable/ic_delete" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

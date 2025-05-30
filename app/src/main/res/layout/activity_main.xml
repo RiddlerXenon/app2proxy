@@ -53,7 +53,7 @@
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
                     style="@style/Widget.Material3.Button.IconButton"
-                    android:contentDescription="Поиск приложений" />
+                    android:contentDescription="@string/toggle_system_apps_description" />
 
                 <!-- Заголовок -->
                 <TextView
@@ -95,7 +95,7 @@
                         app:iconGravity="textStart"
                         app:iconPadding="0dp"
                         style="@style/Widget.Material3.Button.IconButton"
-                        android:contentDescription="Показать/скрыть системные приложения" />
+                        android:contentDescription="@string/toggle_system_apps_description" />
 
                     <!-- Кнопка настроек -->
                     <com.google.android.material.button.MaterialButton
@@ -116,7 +116,7 @@
                         app:iconGravity="textStart"
                         app:iconPadding="0dp"
                         style="@style/Widget.Material3.Button.IconButton"
-                        android:contentDescription="Настройки" />
+                        android:contentDescription="@string/settings_description" />
 
                 </LinearLayout>
 
@@ -138,7 +138,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="Поиск приложений..."
+                    android:hint="@string/search_hint"
                     android:textColor="?attr/colorOnSurface"
                     android:textColorHint="?attr/colorOnSurfaceVariant"
                     android:background="@android:color/transparent"
@@ -164,7 +164,7 @@
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
                     style="@style/Widget.Material3.Button.IconButton"
-                    android:contentDescription="Закрыть поиск" />
+                    android:contentDescription="@string/close_search_description" />
 
             </LinearLayout>
 

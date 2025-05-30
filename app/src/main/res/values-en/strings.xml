@@ -11,6 +11,24 @@
     <string name="nav_apps">Apps</string>
     <string name="nav_rules">Rules</string>
 
+    <!-- Search -->
+    <string name="search_hint">Search apps…</string>
+    <string name="search_description">Search</string>
+    <string name="close_search_description">Close search</string>
+
+     <!-- Button descriptions -->
+    <string name="toggle_system_apps_description">Show/hide system apps</string>
+    <string name="settings_description">Settings</string>
+    <string name="show_system_apps_description">Show system apps</string>
+    <string name="hide_system_apps_description">Hide system apps</string>
+
+    <!-- Rules -->
+    <string name="manage_rules">Manage Rules</string>
+    <string name="manage_rules_description">Here you can manage iptables rules for selected applications</string>
+    <string name="show_current_rules">Show Current Rules</string>
+    <string name="clear_all_rules">Clear All Rules</string>
+    <string name="remove_selected">Remove Selected</string>
+
     <!-- Actions -->
     <string name="show_system">Show system apps</string>
     <string name="select_all">Select all</string>
@@ -65,4 +83,11 @@
     <string name="material_you_amoled_enabled">Material You enabled for AMOLED theme.\nDynamic colors will apply to interface elements,\nbackground and AppBar will remain black.</string>
     <string name="amoled_material_you_enabled">AMOLED theme enabled.\nMaterial You dynamic colors will apply to interface elements,\nbackground and AppBar will be black.</string>
     <string name="port_update_error">Error updating ports: %1$s</string>
+    <string name="error_opening_settings">Error opening settings</string>
+    <string name="app_list_updated">App list updated</string>
+    <string name="error_updating_list">Error updating list</string>
+    <string name="max_apps_selected">Maximum %d apps can be selected</string>
+    <string name="all_rules_removed">All rules removed</string>
+    <string name="rules_applied_for_apps">Rules applied for %d apps</string>
+    <string name="rules_updated_for_apps">Rules updated for %d apps</string>
 </resources>

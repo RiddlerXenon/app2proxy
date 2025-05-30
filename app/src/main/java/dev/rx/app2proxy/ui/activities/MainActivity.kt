@@ -147,7 +147,8 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
                 updateSystemAppsButtonIcon()
                 getAppListFragment()?.setShowSystemApps(showSystemApps)
                 
-                val message = if (showSystemApps) "Показаны системные приложения" else "Скрыты системные приложения"
+                val message = if (showSystemApps) getString(R.string.system_apps_shown) else getString(R.string.system_apps_hidden)
+
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             }
             
@@ -157,7 +158,7 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
                     startActivity(Intent(this, SettingsActivity::class.java))
                 } catch (e: Exception) {
                     Log.e(TAG, "Ошибка открытия настроек", e)
-                    Toast.makeText(this, "Ошибка открытия настроек", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.error_opening_settings), Toast.LENGTH_SHORT).show()
                 }
             }
             
@@ -285,7 +286,7 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
             val iconRes = if (showSystemApps) R.drawable.ic_visibility_24 else R.drawable.ic_visibility_off_24
             binding.btnToggleSystemApps.setIconResource(iconRes)
             
-            val description = if (showSystemApps) "Скрыть системные приложения" else "Показать системные приложения"
+            val description = if (showSystemApps) getString(R.string.hide_system_apps_description) else getString(R.string.show_system_apps_description)
             binding.btnToggleSystemApps.contentDescription = description
             
         } catch (e: Exception) {

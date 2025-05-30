@@ -106,7 +106,14 @@ class LanguageManager(private val context: Context) {
     fun applyLanguageToContext(context: Context): Context {
         val languageCode = getLanguageToApply()
         
-        val locale = Locale(languageCode)
+        // val locale = Locale(languageCode) 'constructor Locale(String!)' is deprecated. Deprecated in Java
+        // Use Locale.forLanguageTag(String) instead
+        val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Locale.forLanguageTag(languageCode)
+        } else {
+            @Suppress("DEPRECATION")
+            Locale(languageCode)
+        }
         Locale.setDefault(locale)
         
         val config = Configuration(context.resources.configuration)

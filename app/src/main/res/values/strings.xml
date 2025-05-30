@@ -11,6 +11,24 @@
     <string name="nav_apps">Приложения</string>
     <string name="nav_rules">Правила</string>
 
+    <!-- Поиск -->
+    <string name="search_hint">Поиск приложений…</string>
+    <string name="search_description">Поиск</string>
+    <string name="close_search_description">Закрыть поиск</string>
+
+    <!-- Описания кнопок -->
+    <string name="toggle_system_apps_description">Показать/скрыть системные приложения</string>
+    <string name="settings_description">Настройки</string>
+    <string name="show_system_apps_description">Показать системные приложения</string>
+    <string name="hide_system_apps_description">Скрыть системные приложения</string>
+
+    <!-- Правила -->
+    <string name="manage_rules">Управление правилами</string>
+    <string name="manage_rules_description">Здесь вы можете управлять правилами iptables для выбранных приложений</string>
+    <string name="show_current_rules">Показать текущие правила</string>
+    <string name="clear_all_rules">Очистить все правила</string>
+    <string name="remove_selected">Удалить выбранные</string>
+
     <!-- Действия -->
     <string name="show_system">Показывать системные</string>
     <string name="select_all">Выбрать все</string>
@@ -65,4 +83,12 @@
     <string name="material_you_amoled_enabled">Material You включен для AMOLED темы.\nДинамические цвета применятся к элементам интерфейса,\nфон и AppBar останутся черными.</string>
     <string name="amoled_material_you_enabled">AMOLED тема включена.\nДинамические цвета Material You применятся к элементам интерфейса,\nфон и AppBar будут черными.</string>
     <string name="port_update_error">Ошибка при обновлении портов: %1$s</string>
+
+    <string name="error_opening_settings">Ошибка открытия настроек</string>
+    <string name="app_list_updated">Список приложений обновлен</string>
+    <string name="error_updating_list">Ошибка обновления списка</string>
+    <string name="max_apps_selected">Можно выбрать максимум %d приложений</string>
+    <string name="all_rules_removed">Все правила удалены</string>
+    <string name="rules_applied_for_apps">Правила применены для %d приложений</string>
+    <string name="rules_updated_for_apps">Правила обновлены для %d приложений</string>
 </resources>

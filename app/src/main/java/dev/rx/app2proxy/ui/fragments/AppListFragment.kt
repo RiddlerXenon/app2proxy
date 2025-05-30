@@ -53,10 +53,10 @@ class AppListFragment : Fragment(), RulesUpdateListener {
             binding.swipeRefresh.isRefreshing = false
             
             // Показываем сообщение об успешном обновлении
-            Toast.makeText(requireContext(), "Список приложений обновлен", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.app_list_updated), Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             binding.swipeRefresh.isRefreshing = false
-            Toast.makeText(requireContext(), "Ошибка обновления списка", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_updating_list), Toast.LENGTH_SHORT).show()
         }
     }
 

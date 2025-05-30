@@ -11,6 +11,24 @@
     <string name="nav_apps">Apps</string>
     <string name="nav_rules">Regeln</string>
 
+    <!-- Search -->
+    <string name="search_hint">Apps suchen…</string>
+    <string name="search_description">Suchen</string>
+    <string name="close_search_description">Suche schließen</string>
+
+    <!-- Button descriptions -->
+    <string name="toggle_system_apps_description">System-Apps anzeigen/verbergen</string>
+    <string name="settings_description">Einstellungen</string>
+    <string name="show_system_apps_description">System-Apps anzeigen</string>
+    <string name="hide_system_apps_description">System-Apps verbergen</string>
+
+    <!-- Regeln -->
+    <string name="manage_rules">Regeln verwalten</string>
+    <string name="manage_rules_description">Hier können Sie iptables-Regeln für ausgewählte Anwendungen verwalten</string>
+    <string name="show_current_rules">Aktuelle Regeln anzeigen</string>
+    <string name="clear_all_rules">Alle Regeln löschen</string>
+    <string name="remove_selected">Ausgewählte entfernen</string>
+
     <!-- Aktionen -->
     <string name="show_system">System-Apps anzeigen</string>
     <string name="select_all">Alle auswählen</string>
@@ -65,4 +83,11 @@
     <string name="material_you_amoled_enabled">Material You für AMOLED-Design aktiviert.\nDynamische Farben werden auf Oberflächenelemente angewendet,\nHintergrund und AppBar bleiben schwarz.</string>
     <string name="amoled_material_you_enabled">AMOLED-Design aktiviert.\nMaterial You dynamische Farben werden auf Oberflächenelemente angewendet,\nHintergrund und AppBar werden schwarz sein.</string>
     <string name="port_update_error">Fehler beim Aktualisieren der Ports: %1$s</string>
+    <string name="error_opening_settings">Fehler beim Öffnen der Einstellungen</string>
+    <string name="app_list_updated">App-Liste aktualisiert</string>
+    <string name="error_updating_list">Fehler beim Aktualisieren der Liste</string>
+    <string name="max_apps_selected">Maximal %d Apps können ausgewählt werden</string>
+    <string name="all_rules_removed">Alle Regeln entfernt</string>
+    <string name="rules_applied_for_apps">Regeln für %d Apps angewendet</string>
+    <string name="rules_updated_for_apps">Regeln für %d Apps aktualisiert</string>
 </resources>

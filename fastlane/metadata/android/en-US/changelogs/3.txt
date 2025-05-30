@@ -1,0 +1,4 @@
+Version 1.0.2:
+• Added new application icons
+• Added language support (English, German)
+• Improved interface localization

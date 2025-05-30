@@ -1,0 +1,4 @@
+Version 1.0.2:
+• Neue Anwendungssymbole hinzugefügt
+• Sprachunterstützung hinzugefügt (Englisch, Deutsch)
+• Verbesserte Oberflächenlokalisierung

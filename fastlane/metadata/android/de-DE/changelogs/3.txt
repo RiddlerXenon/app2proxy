@@ -1,4 +1,10 @@
-Version 1.0.2:
-• Neue Anwendungssymbole hinzugefügt
-• Sprachunterstützung hinzugefügt (Englisch, Deutsch)
-• Verbesserte Oberflächenlokalisierung
+⚠️ KRITISCH: Signaturschlüssel geändert aufgrund des Verlusts des ursprünglichen Schlüssels während der Entwicklung.
+Bestehende Benutzer müssen die alte Version DEINSTALLIEREN und die neue INSTALLIEREN.
+Dies ist KEIN Sicherheitsproblem oder MITM-Angriff.
+
+Neue Features:
+- Neue App-Icons mit verbessertem Design
+- Mehrsprachige Unterstützung (Russisch, Englisch, Deutsch)
+- Verbesserte UI-Lokalisierung
+- Aktualisierte Metadaten für IzzyOnDroid
+- Deutsche Lokalisierung in fastlane hinzugefügt

@@ -1,4 +1,10 @@
-Version 1.0.2:
-• Added new application icons
-• Added language support (English, German)
-• Improved interface localization
+⚠️ CRITICAL: Signing key changed due to loss of original key during development. 
+Existing users must UNINSTALL the old version and INSTALL the new one.
+This is NOT a security issue or MITM attack.
+
+New Features:
+- New app icons with improved design
+- Multi-language support (Russian, English, German)
+- Improved UI localization
+- Updated IzzyOnDroid metadata
+- Added German localization support in fastlane

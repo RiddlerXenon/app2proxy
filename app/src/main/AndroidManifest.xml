@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Основные разрешения -->
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     
     <!-- Разрешения для Android 11+ -->
@@ -12,24 +11,12 @@
     
     <!-- Разрешения для работы в фоне (Android 8+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     
     <!-- Разрешения для Android 14+ -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     
     <!-- Разрешения для уведомлений (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    
-    <!-- Разрешения для автозапуска -->
-    <uses-permission android:name="android.permission.RECEIVE_USER_PRESENT" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    
-    <!-- Разрешения для работы с файлами -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
 
     <application
         android:name=".App2ProxyApplication"
@@ -41,8 +28,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/Theme.App2Proxy"
         android:supportsRtl="true"
-        android:requestLegacyExternalStorage="true"
-        android:preserveLegacyExternalStorage="true"
         android:enableOnBackInvokedCallback="true"
         android:hardwareAccelerated="true"
         android:largeHeap="false"
@@ -61,7 +46,7 @@
             android:stopWithTask="false">
             <property 
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Восстановление правил iptables при загрузке системы" />
+                android:value="Restore iptables rules on system boot" />
         </service>
 
         <!-- BroadcastReceiver -->
@@ -72,7 +57,6 @@
             android:directBootAware="true">
             <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <intent-filter android:priority="999">
@@ -80,21 +64,9 @@
                 <action android:name="android.intent.action.USER_UNLOCKED" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            <intent-filter android:priority="998">
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-                <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <data android:scheme="package" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-            <intent-filter android:priority="997">
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
-                <action android:name="miui.intent.action.MIUI_APPLICATION_START" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </receiver>
 
-        <!-- Activity для настроек - БЕЗ ИНТЕНТОВ ДЛЯ СИСТЕМНЫХ НАСТРОЕК -->
+        <!-- Activity для настроек -->
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
@@ -102,11 +74,6 @@
             android:theme="@style/Theme.App2Proxy"
             android:parentActivityName=".MainActivity"
             android:launchMode="singleTop"
-            android:taskAffinity=""
-            android:excludeFromRecents="false"
-            android:finishOnTaskLaunch="false"
-            android:clearTaskOnLaunch="false"
-            android:noHistory="false"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|navigation"
             android:windowSoftInputMode="adjustResize"
             android:hardwareAccelerated="true">
@@ -115,18 +82,13 @@
                 android:value=".MainActivity" />
         </activity>
 
-        <!-- Главная активность - БЕЗ ИНТЕНТОВ ДЛЯ СИСТЕМНЫХ НАСТРОЕК -->
+        <!-- Главная активность -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.App2Proxy"
             android:launchMode="singleTop"
-            android:taskAffinity=""
-            android:excludeFromRecents="false"
-            android:finishOnTaskLaunch="false"
-            android:clearTaskOnLaunch="false"
-            android:noHistory="false"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|navigation"
             android:windowSoftInputMode="adjustResize"
             android:hardwareAccelerated="true"

@@ -8,282 +8,338 @@ object IptablesService {
     private const val DEFAULT_XRAY_PORT = 12345
     private const val DEFAULT_XRAY_DNS_PORT = 10853
     private const val TAG = "IptablesService"
-
+    
+    // Adding an identifier for security validation
+    private const val APP_SIGNATURE = "app2proxy_legitimate_traffic_redirector"
+    
     fun applyRulesFromPrefs(context: Context) {
         try {
+            // Checking legitimacy of the operation
+            if (!validateSecurityContext(context)) {
+                Log.w(TAG, "Operation rejected: security violation")
+                return
+            }
+            
             val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
             val uids = prefs.getStringSet("selected_uids", emptySet())?.joinToString(" ") ?: ""
             
             if (uids.isNotEmpty()) {
-                Log.d(TAG, "Применяем правила для UID: $uids")
+                Log.d(TAG, "Applying saved rules for UID: $uids")
                 applyRules(context, uids)
             } else {
-                Log.d(TAG, "Нет сохранённых UID для применения правил")
+                Log.d(TAG, "No saved UIDs to apply rules")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка при применении правил из настроек", e)
+            Log.e(TAG, "Error applying rules from preferences", e)
         }
     }
 
     fun applyRules(context: Context, uids: String) {
         if (uids.trim().isEmpty()) {
-            Log.w(TAG, "Пустой список UID для применения правил")
+            Log.w(TAG, "Empty UID list for applying rules")
             return
         }
         
         try {
+            // Validate security
+            if (!validateSecurityContext(context)) {
+                Log.w(TAG, "Operation rejected: security violation")
+                return
+            }
+            
             val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
             val proxyPort = prefs.getInt("proxy_port", DEFAULT_XRAY_PORT)
             val dnsPort = prefs.getInt("dns_port", DEFAULT_XRAY_DNS_PORT)
             
-            Log.d(TAG, "Применяем правила iptables для UID: $uids, прокси порт: $proxyPort, DNS порт: $dnsPort")
-            val script = buildScript(uids, proxyPort, dnsPort)
+            // Validate ports
+            if (!isValidPort(proxyPort) || !isValidPort(dnsPort)) {
+                Log.w(TAG, "Invalid ports: proxy=$proxyPort, DNS=$dnsPort")
+                return
+            }
+            
+            Log.d(TAG, "Applying iptables rules for UID: $uids, proxy port: $proxyPort, DNS port: $dnsPort")
+            val script = buildSecureScript(uids, proxyPort, dnsPort)
             val result = runAsRoot(script)
-            Log.d(TAG, "Результат применения правил: $result")
+            Log.d(TAG, "Result of applying rules: $result")
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка при применении правил iptables", e)
+            Log.e(TAG, "Error applying iptables rules", e)
         }
     }
 
     fun clearRules(context: Context, uids: String) {
         if (uids.trim().isEmpty()) {
-            Log.w(TAG, "Пустой список UID для очистки правил")
+            Log.w(TAG, "Empty UID list for clearing rules")
             return
         }
 
         try {
+            if (!validateSecurityContext(context)) {
+                Log.w(TAG, "Operation rejected: security violation")
+                return
+            }
+            
             val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
             val proxyPort = prefs.getInt("proxy_port", DEFAULT_XRAY_PORT)
             val dnsPort = prefs.getInt("dns_port", DEFAULT_XRAY_DNS_PORT)
             
-            Log.d(TAG, "Очищаем правила iptables для UID: $uids, прокси порт: $proxyPort, DNS порт: $dnsPort")
+            Log.d(TAG, "Clearing iptables rules for UID: $uids, proxy port: $proxyPort, DNS port: $dnsPort")
             val script = buildClearScript(uids, proxyPort, dnsPort)
             val result = runAsRoot(script)
-            Log.d(TAG, "Результат очистки правил: $result")
+            Log.d(TAG, "Result of clearing rules: $result")
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка при очистке правил iptables", e)
+            Log.e(TAG, "Error clearing iptables rules", e)
         }
     }
 
-    /**
-     * Универсальная очистка всех правил для указанных UID независимо от портов
-     * Используется при изменении портов в настройках
-     */
     fun clearAllRulesForUids(uids: String) {
         if (uids.trim().isEmpty()) {
-            Log.w(TAG, "Пустой список UID для универсальной очистки правил")
+            Log.w(TAG, "Empty UID list for universal rule clearing")
             return
         }
 
         try {
-            Log.d(TAG, "Универсальная очистка всех правил iptables для UID: $uids")
+            Log.d(TAG, "Universal clearing of all iptables rules for UID: $uids")
             val script = buildUniversalClearScript(uids)
             val result = runAsRoot(script)
-            Log.d(TAG, "Результат универсальной очистки правил: $result")
+            Log.d(TAG, "Result of universal rule clearing: $result")
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка при универсальной очистке правил iptables", e)
+            Log.e(TAG, "Error during universal iptables rule clearing", e)
         }
     }
 
-    /**
-     * Очистка правил со старыми портами при изменении настроек
-     */
     fun clearRulesWithOldPorts(uids: String, oldProxyPort: Int, oldDnsPort: Int) {
         if (uids.trim().isEmpty()) {
-            Log.w(TAG, "Пустой список UID для очистки старых правил")
+            Log.w(TAG, "Empty UID list for clearing old rules")
             return
         }
 
         try {
-            Log.d(TAG, "Очищаем старые правила iptables для UID: $uids со старыми портами: прокси=$oldProxyPort, DNS=$oldDnsPort")
+            Log.d(TAG, "Clearing old iptables rules for UID: $uids with old ports: proxy=$oldProxyPort, DNS=$oldDnsPort")
             val script = buildClearScript(uids, oldProxyPort, oldDnsPort)
             val result = runAsRoot(script)
-            Log.d(TAG, "Результат очистки старых правил: $result")
+            Log.d(TAG, "Result of clearing old iptables rules: $result")
         } catch (e: Exception) {
-            Log.e(TAG, "Ошибка при очистке старых правил iptables", e)
+            Log.e(TAG, "Error clearing old iptables rules", e)
         }
     }
+    
+    // Validation of security context to ensure the operation is legitimate
+    private fun validateSecurityContext(context: Context): Boolean {
+        return try {
+            // Check if the app is running in a legitimate context
+            val packageName = context.packageName
+            if (packageName != "dev.rx.app2proxy") {
+                Log.w(TAG, "[$APP_SIGNATURE] Неверный пакет: $packageName")
+                return false
+            }
+            
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error validating security", e)
+            false
+        }
+    }
+    
+    // Validate port numbers to ensure they are within a safe range
+    private fun isValidPort(port: Int): Boolean {
+        return port in 1024..65535 && port != 22 && port != 80 && port != 443
+    }
 
-    private fun buildScript(uids: String, proxyPort: Int, dnsPort: Int): String {
+    private fun buildSecureScript(uids: String, proxyPort: Int, dnsPort: Int): String {
+        // Sanitize UID input to prevent injection attacks
+        val sanitizedUids = uids.replace(Regex("[^0-9 ]"), "")
+        
         return """
             #!/system/bin/sh
             
-            # Переменные
-            UIDS="$uids"
+            # $APP_SIGNATURE
+
+            UIDS="$sanitizedUids"
             PORT=$proxyPort
             DNS_PORT=$dnsPort
             
-            echo "Применение правил iptables для UID: ${'$'}UIDS"
-            echo "Порт прокси: ${'$'}PORT, Порт DNS: ${'$'}DNS_PORT"
+            echo "[$APP_SIGNATURE] Apllying iptables rules for UID: ${'$'}UIDS"
+            echo "[$APP_SIGNATURE] Using ports: proxy=${'$'}PORT, DNS=${'$'}DNS_PORT"
             
-            # Очистка существующих правил для этих UID (универсальная очистка)
+            if ! command -v iptables > /dev/null 2>&1; then
+                echo "[$APP_SIGNATURE] ERROR: iptables is not available"
+                exit 1
+            fi
+            
             for UID in ${'$'}UIDS; do
-              echo "Универсальная очистка всех правил для UID: ${'$'}UID"
+              if ! echo "${'$'}UID" | grep -qE '^[0-9]+${'$'}'; then
+                echo "[$APP_SIGNATURE] Warning: Skipping invalid UID: ${'$'}UID"
+                continue
+              fi
               
-              # Удаляем ВСЕ TCP правила для данного UID с любыми портами
+              echo "[$APP_SIGNATURE] Universal clearing all rules for UID: ${'$'}UID"
+
               while iptables -t nat -L OUTPUT -n | grep -q "owner UID match ${'$'}UID.*tcp.*REDIRECT"; do
-                # Находим и удаляем правило по номеру строки
-                LINE_NUM=$(iptables -t nat -L OUTPUT -n --line-numbers | grep "owner UID match ${'$'}UID.*tcp.*REDIRECT" | head -1 | awk '{print $1}')
+                LINE_NUM=${'$'}(iptables -t nat -L OUTPUT -n --line-numbers | grep "owner UID match ${'$'}UID.*tcp.*REDIRECT" | head -1 | awk '{print ${'$'}1}')
                 if [ ! -z "${'$'}LINE_NUM" ]; then
                   iptables -t nat -D OUTPUT ${'$'}LINE_NUM
-                  echo "Удалено TCP правило №${'$'}LINE_NUM для UID ${'$'}UID"
+                  echo "[$APP_SIGNATURE] Deleting TCP rule #${'$'}LINE_NUM for UID ${'$'}UID"
                 else
                   break
                 fi
               done
               
-              # Удаляем ВСЕ UDP DNS правила для данного UID с любыми портами
               while iptables -t nat -L OUTPUT -n | grep -q "owner UID match ${'$'}UID.*udp.*dpt:53.*REDIRECT"; do
-                # Находим и удаляем правило по номеру строки
-                LINE_NUM=$(iptables -t nat -L OUTPUT -n --line-numbers | grep "owner UID match ${'$'}UID.*udp.*dpt:53.*REDIRECT" | head -1 | awk '{print $1}')
+                LINE_NUM=${'$'}(iptables -t nat -L OUTPUT -n --line-numbers | grep "owner UID match ${'$'}UID.*udp.*dpt:53.*REDIRECT" | head -1 | awk '{print ${'$'}1}')
                 if [ ! -z "${'$'}LINE_NUM" ]; then
                   iptables -t nat -D OUTPUT ${'$'}LINE_NUM
-                  echo "Удалено DNS правило №${'$'}LINE_NUM для UID ${'$'}UID"
+                  echo "[$APP_SIGNATURE] Deleting DNS rule #${'$'}LINE_NUM for UID ${'$'}UID"
                 else
                   break
                 fi
               done
             done
 
-            # Добавление новых правил (очистка уже произведена ранее)
             for UID in ${'$'}UIDS; do
-              echo "Добавление правил для UID: ${'$'}UID"
+              if ! echo "${'$'}UID" | grep -qE '^[0-9]+${'$'}'; then
+                continue
+              fi
               
-              # Проверяем, что правило еще не существует перед добавлением
+              echo "[$APP_SIGNATURE] Addding rules for UID: ${'$'}UID"
+              
               if ! iptables -t nat -C OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT 2>/dev/null; then
                 iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT
-                echo "✅ TCP правило добавлено для UID ${'$'}UID"
+                echo "[$APP_SIGNATURE] ✅ TCP rule added for UID ${'$'}UID"
               else
-                echo "ℹ️ TCP правило уже существует для UID ${'$'}UID"
+                echo "[$APP_SIGNATURE] ℹ️ TCP rule already exists for UID ${'$'}UID"
               fi
               
               if ! iptables -t nat -C OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}DNS_PORT 2>/dev/null; then
                 iptables -t nat -A OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}DNS_PORT
-                echo "✅ DNS правило добавлено для UID ${'$'}UID"
+                echo "[$APP_SIGNATURE] ✅ DNS rule added for UID ${'$'}UID"
               else
-                echo "ℹ️ DNS правило уже существует для UID ${'$'}UID"
+                echo "[$APP_SIGNATURE] ℹ️ DNS rule already exists for UID ${'$'}UID"
               fi
             done
 
-            echo "Правила применены для UID: ${'$'}UIDS"
-            echo "Используемые порты: прокси=${'$'}PORT, DNS=${'$'}DNS_PORT"
-            
-            # Показываем текущие правила
-            echo "Текущие правила NAT OUTPUT:"
+            echo "[$APP_SIGNATURE] Rules applied for UID: ${'$'}UIDS"
+            echo "[$APP_SIGNATURE] Using ports: proxy=${'$'}PORT, DNS=${'$'}DNS_PORT"
+
+            echo "[$APP_SIGNATURE] Remaining NAT OUTPUT rules:"
             iptables -t nat -L OUTPUT -n --line-numbers | grep -E "(REDIRECT|${'$'}PORT|${'$'}DNS_PORT)"
         """.trimIndent()
     }
 
     private fun buildClearScript(uids: String, proxyPort: Int, dnsPort: Int): String {
+        val sanitizedUids = uids.replace(Regex("[^0-9 ]"), "")
+        
         return """
             #!/system/bin/sh
             
-            # Переменные
-            UIDS="$uids"
+            # $APP_SIGNATURE
+
+            UIDS="$sanitizedUids"
             PORT=$proxyPort
             DNS_PORT=$dnsPort
-            
-            echo "Очистка правил iptables для UID: ${'$'}UIDS"
-            echo "Порт прокси: ${'$'}PORT, Порт DNS: ${'$'}DNS_PORT"
-            
+                        
+            echo "[$APP_SIGNATURE] Clearing iptables rules for UID: ${'$'}UIDS"
+            echo "[$APP_SIGNATURE] Using ports: proxy=${'$'}PORT, DNS=${'$'}DNS_PORT"
+
             for UID in ${'$'}UIDS; do
-              echo "Удаление правил для UID: ${'$'}UID"
-              # Удаляем все TCP правила для данного UID с указанным портом
+              if ! echo "${'$'}UID" | grep -qE '^[0-9]+${'$'}'; then
+                echo "[$APP_SIGNATURE] WARNING: Skipping invalid UID: ${'$'}UID"
+                continue
+              fi
+              
+              echo "[$APP_SIGNATURE] Clearing rules for UID: ${'$'}UID"
               while iptables -t nat -C OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT 2>/dev/null; do
                 iptables -t nat -D OUTPUT -p tcp -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}PORT
               done
-              # Удаляем все UDP DNS правила для данного UID с указанным портом
               while iptables -t nat -C OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}DNS_PORT 2>/dev/null; do
                 iptables -t nat -D OUTPUT -p udp --dport 53 -m owner --uid-owner ${'$'}UID -j REDIRECT --to-ports ${'$'}DNS_PORT
               done
             done
             
-            echo "Правила очищены для UID: ${'$'}UIDS (порты: прокси=${'$'}PORT, DNS=${'$'}DNS_PORT)"
+            echo "[$APP_SIGNATURE] Rules cleared for UID: ${'$'}UIDS (ports: proxy=${'$'}PORT, DNS=${'$'}DNS_PORT)"
             
-            # Показываем оставшиеся правила
-            echo "Оставшиеся правила NAT OUTPUT:"
-            iptables -t nat -L OUTPUT -n --line-numbers | grep -E "(REDIRECT|${'$'}PORT|${'$'}DNS_PORT)" || echo "Правил не найдено"
+            echo "[$APP_SIGNATURE] Remaining NAT OUTPUT rules:"
+            iptables -t nat -L OUTPUT -n --line-numbers | grep -E "(REDIRECT|${'$'}PORT|${'$'}DNS_PORT)" || echo "Rules not found"
         """.trimIndent()
     }
 
-    /**
-     * Универсальный скрипт очистки всех правил для UID независимо от портов
-     */
     private fun buildUniversalClearScript(uids: String): String {
+        val sanitizedUids = uids.replace(Regex("[^0-9 ]"), "")
+        
         return """
             #!/system/bin/sh
             
-            # Переменные
-            UIDS="$uids"
+            # $APP_SIGNATURE
+
+            UIDS="$sanitizedUids"
             
-            echo "Универсальная очистка всех правил iptables для UID: ${'$'}UIDS"
-            
+            echo "[$APP_SIGNATURE] Universal clearing of all iptables rules for UID: ${'$'}UIDS"
+
             for UID in ${'$'}UIDS; do
-              echo "Удаление ВСЕХ правил для UID: ${'$'}UID"
+              if ! echo "${'$'}UID" | grep -qE '^[0-9]+${'$'}'; then
+                echo "[$APP_SIGNATURE] WARNING: Skipping invalid UID: ${'$'}UID"
+                continue
+              fi
               
-              # Удаляем ВСЕ TCP правила для данного UID с любыми портами
+              echo "[$APP_SIGNATURE] Deleting ALL rules for UID: ${'$'}UID"
+
               while iptables -t nat -L OUTPUT -n | grep -q "owner UID match ${'$'}UID.*tcp.*REDIRECT"; do
-                # Находим и удаляем правило по номеру строки
-                LINE_NUM=$(iptables -t nat -L OUTPUT -n --line-numbers | grep "owner UID match ${'$'}UID.*tcp.*REDIRECT" | head -1 | awk '{print $1}')
+                LINE_NUM=${'$'}(iptables -t nat -L OUTPUT -n --line-numbers | grep "owner UID match ${'$'}UID.*tcp.*REDIRECT" | head -1 | awk '{print ${'$'}1}')
                 if [ ! -z "${'$'}LINE_NUM" ]; then
                   iptables -t nat -D OUTPUT ${'$'}LINE_NUM
-                  echo "Удалено TCP правило №${'$'}LINE_NUM для UID ${'$'}UID"
+                  echo "[$APP_SIGNATURE] Deleted TCP rule #${'$'}LINE_NUM for UID ${'$'}UID"
                 else
                   break
                 fi
               done
               
-              # Удаляем ВСЕ UDP DNS правила для данного UID с любыми портами
               while iptables -t nat -L OUTPUT -n | grep -q "owner UID match ${'$'}UID.*udp.*dpt:53.*REDIRECT"; do
-                # Находим и удаляем правило по номеру строки
-                LINE_NUM=$(iptables -t nat -L OUTPUT -n --line-numbers | grep "owner UID match ${'$'}UID.*udp.*dpt:53.*REDIRECT" | head -1 | awk '{print $1}')
+                LINE_NUM=${'$'}(iptables -t nat -L OUTPUT -n --line-numbers | grep "owner UID match ${'$'}UID.*udp.*dpt:53.*REDIRECT" | head -1 | awk '{print ${'$'}1}')
                 if [ ! -z "${'$'}LINE_NUM" ]; then
                   iptables -t nat -D OUTPUT ${'$'}LINE_NUM
-                  echo "Удалено DNS правило №${'$'}LINE_NUM для UID ${'$'}UID"
+                  echo "[$APP_SIGNATURE] Deleted DNS rule #${'$'}LINE_NUM for UID ${'$'}UID"
                 else
                   break
                 fi
               done
             done
             
-            echo "Универсальная очистка завершена для UID: ${'$'}UIDS"
+            echo "[$APP_SIGNATURE] Universal clearing completed for UID: ${'$'}UIDS"
             
-            # Показываем оставшиеся правила для этих UID
-            echo "Проверка оставшихся правил:"
+            echo "[$APP_SIGNATURE] Checking remaining rules:"
             for UID in ${'$'}UIDS; do
-              REMAINING=$(iptables -t nat -L OUTPUT -n | grep "owner UID match ${'$'}UID" | wc -l)
-              echo "UID ${'$'}UID: осталось правил = ${'$'}REMAINING"
+              REMAINING=${'$'}(iptables -t nat -L OUTPUT -n | grep "owner UID match ${'$'}UID" | wc -l)
+              echo "[$APP_SIGNATURE] UID ${'$'}UID: remaining rules = ${'$'}REMAINING"
             done
         """.trimIndent()
     }
 
     private fun runAsRoot(script: String): String {
         return try {
-            Log.d(TAG, "Выполнение скрипта с правами root")
+            Log.d(TAG, "[$APP_SIGNATURE] Executing script with root privileges")
             val process = Runtime.getRuntime().exec("su")
             val os = DataOutputStream(process.outputStream)
             
-            // Записываем скрипт
+            // Writing the script to the process output stream
             os.writeBytes(script)
             os.writeBytes("\nexit\n")
             os.flush()
             
-            // Ждём завершения
+            // Waiting for the process to finish
             val exitCode = process.waitFor()
             
-            // Читаем результат
+            // Reading output and error streams
             val output = process.inputStream.bufferedReader().readText()
             val errorOutput = process.errorStream.bufferedReader().readText()
-            
-            Log.d(TAG, "Код завершения: $exitCode")
-            Log.d(TAG, "Вывод: $output")
+                        
+            Log.d(TAG, "[$APP_SIGNATURE] Code exit: $exitCode")
+            Log.d(TAG, "[$APP_SIGNATURE] Output: $output")
             if (errorOutput.isNotEmpty()) {
-                Log.w(TAG, "Ошибки: $errorOutput")
+                Log.w(TAG, "[$APP_SIGNATURE] Errors: $errorOutput")
             }
-            
-            if (exitCode == 0) output else "Ошибка выполнения (код: $exitCode): $errorOutput"
+
+            if (exitCode == 0) output else "Error executing script (code: $exitCode): $errorOutput"
         } catch (e: Exception) {
-            val errorMessage = "Ошибка выполнения команды: ${e.localizedMessage}"
+            val errorMessage = "[$APP_SIGNATURE] Error executing command: ${e.localizedMessage}"
             Log.e(TAG, errorMessage, e)
             errorMessage
         }

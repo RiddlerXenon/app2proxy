@@ -1,5 +1,6 @@
 package dev.rx.app2proxy
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -81,8 +82,112 @@ class AppListAdapter(
                 checkBox.toggle()
             }
 
+            // Добавляем долгое нажатие для показа информации о приложении
+            root.setOnLongClickListener {
+                showAppInfoDialog(holder.binding.root.context, app)
+                true
+            }
+
             // Применяем AMOLED стили к карточке, если включена AMOLED тема
             applyAmoledStyleIfNeeded(holder)
+        }
+    }
+
+    private fun showAppInfoDialog(context: Context, app: AppInfo) {
+        try {
+            val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
+            val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
+            val isDarkTheme = prefs.getBoolean("dark_theme", true)
+            val isRuleActive = selected.contains(app.uid.toString())
+            
+            // Получаем иконку приложения
+            val appIcon = try {
+                packageManager.getApplicationIcon(app.packageName)
+            } catch (e: Exception) {
+                context.getDrawable(android.R.drawable.sym_def_app_icon)
+            }
+            
+            // Создаем диалог с AMOLED поддержкой
+            val dialogBuilder = AmoledDynamicColorScheme.createAmoledMaterialAlertDialogBuilder(
+                context, useAmoledTheme, isDarkTheme
+            )
+            
+            // Создаем кастомный layout для диалога
+            val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_app_info, null)
+            
+            // Настраиваем элементы диалога
+            val dialogAppIcon = dialogView.findViewById<android.widget.ImageView>(R.id.dialogAppIcon)
+            val dialogAppName = dialogView.findViewById<android.widget.TextView>(R.id.dialogAppName)
+            val dialogPackageName = dialogView.findViewById<android.widget.TextView>(R.id.dialogPackageName)
+            val dialogUid = dialogView.findViewById<android.widget.TextView>(R.id.dialogUid)
+            val dialogRuleStatus = dialogView.findViewById<android.widget.TextView>(R.id.dialogRuleStatus)
+            
+            dialogAppIcon.setImageDrawable(appIcon)
+            dialogAppName.text = app.appName
+            dialogPackageName.text = app.packageName
+            dialogUid.text = context.getString(R.string.app_uid_format, app.uid)
+            
+            // Устанавливаем статус правила
+            if (isRuleActive) {
+                dialogRuleStatus.text = context.getString(R.string.rule_status_active)
+                dialogRuleStatus.setTextColor(context.getColor(android.R.color.holo_green_light))
+            } else {
+                dialogRuleStatus.text = context.getString(R.string.rule_status_inactive)
+                dialogRuleStatus.setTextColor(context.getColor(android.R.color.holo_red_light))
+            }
+            
+            val dialog = dialogBuilder
+                .setTitle(R.string.app_info_title)
+                .setView(dialogView)
+                .setPositiveButton(android.R.string.ok, null)
+                .apply {
+                    // Добавляем кнопку удаления правила только если правило активно
+                    if (isRuleActive) {
+                        setNegativeButton(R.string.remove_rule) { _, _ ->
+                            removeAppRule(context, app)
+                        }
+                    }
+                }
+                .create()
+            
+            dialog.show()
+            
+            // Применяем AMOLED стиль к показанному диалогу
+            AmoledDynamicColorScheme.applyAmoledStyleToDialog(dialog, useAmoledTheme, isDarkTheme)
+            
+        } catch (e: Exception) {
+            android.util.Log.e("AppListAdapter", "Ошибка показа диалога информации о приложении", e)
+            Toast.makeText(context, R.string.error_showing_app_info, Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun removeAppRule(context: Context, app: AppInfo) {
+        try {
+            // Удаляем приложение из выбранных
+            selected.remove(app.uid.toString())
+            
+            // Удаляем правило iptables для данного приложения
+            IptablesService.clearAllRulesForUids(app.uid.toString())
+            
+            // Сохраняем обновленное состояние
+            val prefs = context.getSharedPreferences("proxy_prefs", Context.MODE_PRIVATE)
+            prefs.edit().putStringSet("selected_uids", selected).apply()
+            
+            // Обновляем отображение
+            notifyDataSetChanged()
+            
+            // Уведомляем о изменении
+            onSelectedChanged(selected)
+            
+            Toast.makeText(
+                context, 
+                context.getString(R.string.rule_removed_for_app, app.appName), 
+                Toast.LENGTH_SHORT
+            ).show()
+            
+        } catch (e: Exception) {
+            android.util.Log.e("AppListAdapter", "Ошибка удаления правила для приложения", e)
+            Toast.makeText(context, R.string.error_removing_rule, Toast.LENGTH_SHORT).show()
         }
     }
 

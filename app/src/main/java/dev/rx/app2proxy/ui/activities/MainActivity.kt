@@ -13,9 +13,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.color.DynamicColors
 import dev.rx.app2proxy.databinding.ActivityMainBinding
 import dev.rx.app2proxy.ui.activities.BaseActivity
@@ -29,6 +26,7 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
     private lateinit var binding: ActivityMainBinding
     private var showSystemApps = false
     private var isSearchExpanded = false
+    private var appListFragment: AppListFragment? = null
     
     override fun onCreate(savedInstanceState: Bundle?) {
         // Применяем тему до super.onCreate
@@ -44,8 +42,7 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
             setupToolbar()
             setupToolbarButtons()
             setupSearch()
-            setupViewPager()
-            setupBottomNavigation()
+            setupAppListFragment()
             setupBackPressedCallback()
             
             // Применяем динамические цвета если включен Material You
@@ -57,6 +54,20 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
             Log.d(TAG, "✅ MainActivity создан")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Ошибка создания MainActivity", e)
+        }
+    }
+    
+    private fun setupAppListFragment() {
+        try {
+            if (appListFragment == null) {
+                appListFragment = AppListFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, appListFragment!!)
+                    .commit()
+            }
+            Log.d(TAG, "✅ AppListFragment настроен")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Ошибка настройки AppListFragment", e)
         }
     }
     
@@ -145,10 +156,9 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
             binding.btnToggleSystemApps.setOnClickListener {
                 showSystemApps = !showSystemApps
                 updateSystemAppsButtonIcon()
-                getAppListFragment()?.setShowSystemApps(showSystemApps)
+                appListFragment?.setShowSystemApps(showSystemApps)
                 
                 val message = if (showSystemApps) getString(R.string.system_apps_shown) else getString(R.string.system_apps_hidden)
-
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             }
             
@@ -239,7 +249,7 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
             hideKeyboard()
             
             // Сбрасываем фильтр в списке приложений
-            getAppListFragment()?.filterApps("")
+            appListFragment?.filterApps("")
             
             Log.d(TAG, "✅ Поиск свернут")
         } catch (e: Exception) {
@@ -249,14 +259,11 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
 
     private fun performSearch(query: String) {
         try {
-            // Выполняем поиск только на вкладке приложений
-            if (binding.viewPager.currentItem == 0) {
-                getAppListFragment()?.filterApps(query)
-                
-                if (query.isNotBlank()) {
-                    val count = getAppListFragment()?.getFilteredAppsCount() ?: 0
-                    Log.d(TAG, "🔍 Найдено $count приложений по запросу: $query")
-                }
+            appListFragment?.filterApps(query)
+            
+            if (query.isNotBlank()) {
+                val count = appListFragment?.getFilteredAppsCount() ?: 0
+                Log.d(TAG, "🔍 Найдено $count приложений по запросу: $query")
             }
         } catch (e: Exception) {
             Log.e(TAG, "❌ Ошибка выполнения поиска", e)
@@ -291,67 +298,6 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
             
         } catch (e: Exception) {
             Log.e(TAG, "❌ Ошибка обновления иконки", e)
-        }
-    }
-
-    private fun setupViewPager() {
-        try {
-            val adapter = ViewPagerAdapter(this)
-            binding.viewPager.adapter = adapter
-            Log.d(TAG, "✅ ViewPager настроен")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Ошибка настройки ViewPager", e)
-        }
-    }
-
-    private fun setupBottomNavigation() {
-        try {
-            val bottomNavigation = binding.bottomNavigation
-            
-            bottomNavigation.setOnItemSelectedListener { item ->
-                when (item.itemId) {
-                    R.id.nav_apps -> {
-                        binding.viewPager.currentItem = 0
-                        // Показываем кнопку поиска только на вкладке приложений
-                        binding.btnSearch.visibility = View.VISIBLE
-                        true
-                    }
-                    R.id.nav_rules -> {
-                        binding.viewPager.currentItem = 1
-                        // Сворачиваем поиск и скрываем кнопку на других вкладках
-                        if (isSearchExpanded) {
-                            collapseSearch()
-                        }
-                        binding.btnSearch.visibility = View.GONE
-                        true
-                    }
-                    else -> false
-                }
-            }
-
-            // Синхронизируем ViewPager с BottomNavigation
-            binding.viewPager.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
-                override fun onPageSelected(position: Int) {
-                    super.onPageSelected(position)
-                    when (position) {
-                        0 -> {
-                            bottomNavigation.selectedItemId = R.id.nav_apps
-                            binding.btnSearch.visibility = View.VISIBLE
-                        }
-                        1 -> {
-                            bottomNavigation.selectedItemId = R.id.nav_rules
-                            if (isSearchExpanded) {
-                                collapseSearch()
-                            }
-                            binding.btnSearch.visibility = View.GONE
-                        }
-                    }
-                }
-            })
-            
-            Log.d(TAG, "✅ BottomNavigation настроен")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Ошибка настройки BottomNavigation", e)
         }
     }
 
@@ -417,24 +363,6 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
         }
     }
 
-    private fun getAppListFragment(): AppListFragment? {
-        return try {
-            supportFragmentManager.findFragmentByTag("f0") as? AppListFragment
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Ошибка получения AppListFragment", e)
-            null
-        }
-    }
-
-    private fun getRulesManagerFragment(): RulesManagerFragment? {
-        return try {
-            supportFragmentManager.findFragmentByTag("f1") as? RulesManagerFragment
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Ошибка получения RulesManagerFragment", e)
-            null
-        }
-    }
-
     private fun applyAmoledThemeIfNeeded() {
         val prefs = getSharedPreferences("proxy_prefs", MODE_PRIVATE)
         val useAmoledTheme = prefs.getBoolean("amoled_theme", false)
@@ -451,23 +379,6 @@ class MainActivity : BaseActivity(), RulesUpdateListener {
 
     override fun onRulesUpdated() {
         // Обновляем состояние чекбоксов в списке приложений
-        getAppListFragment()?.refreshSelectedStates()
-    }
-
-    // Адаптер для ViewPager
-    private inner class ViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
-        override fun getItemCount(): Int = 2
-
-        override fun createFragment(position: Int): Fragment {
-            return when (position) {
-                0 -> AppListFragment()
-                1 -> {
-                    val fragment = RulesManagerFragment()
-                    fragment.setRulesUpdateListener(this@MainActivity)
-                    fragment
-                }
-                else -> throw IllegalArgumentException("Invalid position: $position")
-            }
-        }
+        appListFragment?.refreshSelectedStates()
     }
 }

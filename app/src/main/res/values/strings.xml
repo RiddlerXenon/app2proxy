@@ -91,4 +91,16 @@
     <string name="all_rules_removed">Все правила удалены</string>
     <string name="rules_applied_for_apps">Правила применены для %d приложений</string>
     <string name="rules_updated_for_apps">Правила обновлены для %d приложений</string>
+    <!-- Добавить эти строки в существующий файл strings.xml -->
+    <string name="app_info_title">Информация о приложении</string>
+    <string name="app_icon_description">Иконка приложения</string>
+    <string name="app_uid_label">UID:</string>
+    <string name="app_uid_format">%d</string>
+    <string name="rule_status_label">Статус правила:</string>
+    <string name="rule_status_active">Активно</string>
+    <string name="rule_status_inactive">Неактивно</string>
+    <string name="remove_rule">Удалить правило</string>
+    <string name="rule_removed_for_app">Правило удалено для %s</string>
+    <string name="error_showing_app_info">Ошибка показа информации о приложении</string>
+    <string name="error_removing_rule">Ошибка удаления правила</string>
 </resources>

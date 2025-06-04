@@ -13,7 +13,7 @@
 [🐛 Сообщить об ошибке](https://github.com/RiddlerXenon/app2proxy/issues) • [💡 Предложить функцию](https://github.com/RiddlerXenon/app2proxy/issues)
 
 <a href="https://apt.izzysoft.de/fdroid/index/apk/dev.rx.app2proxy">
-    <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Получить в IzzyOnDroid" height="80">
+    <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Получить в IzzyOnDroid" height="60">
 </a>
 </div>
 

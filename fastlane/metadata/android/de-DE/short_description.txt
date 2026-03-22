@@ -1,1 +1,1 @@
-Weiterleitung des Traffics ausgewählter Apps über einen lokalen Proxy mit iptables
+Weiterleitung ausgewählter App-Traffic über lokalen Proxy mit iptables
